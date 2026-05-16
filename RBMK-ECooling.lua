@@ -1,5 +1,5 @@
 --[[
-Emergency Cooling Script v1.1
+Emergency Cooling Script v1.1.1
 Built for Kiki Nuclear Power Plant (kNPP)
 Replaces RBMK E-Cooling
 For now, Activates if > 750C and deactivates < 675C
@@ -20,7 +20,7 @@ while true do
 
     for addr, cType in pairs(rbmk_comp) do
 
-        if ~(cType == "rbmk_console" or cType == "rbmk_crane" or cType == "rbmk_outgasser") then
+        if not (cType == "rbmk_console" or cType == "rbmk_crane" or cType == "rbmk_outgasser") then
             -- Get temp directly
             local column = component.proxy(addr)
             table.insert(rbmk_temp_data, column.getHeat())
@@ -34,7 +34,7 @@ while true do
                     if colData ~= nil then
                         table.insert(rbmk_temp_data, colData["hullTemp"])
                     end
-                    
+
                 end
             end
 
