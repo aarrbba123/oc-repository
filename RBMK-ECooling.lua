@@ -1,5 +1,5 @@
 --[[
-Emergency Cooling Script
+Emergency Cooling Script v1.1
 Built for Kiki Nuclear Power Plant (kNPP)
 Replaces RBMK E-Cooling
 For now, Activates if > 750C and deactivates < 675C
@@ -19,10 +19,25 @@ while true do
     local rbmk_temp_data = {}
 
     for addr, cType in pairs(rbmk_comp) do
-        -- Get temp
+
         if ~(cType == "rbmk_console" or cType == "rbmk_crane" or cType == "rbmk_outgasser") then
+            -- Get temp directly
             local column = component.proxy(addr)
             table.insert(rbmk_temp_data, column.getHeat())
+
+        elseif cType == "rbmk_console" then
+            -- Get temp from each position (indirect)
+            local console = component.proxy(addr)
+            for y = 0, 14, 1 do
+                for x = 0, 14, 1 do
+                    local colData = console.getColumnData(x, y)
+                    if colData ~= nil then
+                        table.insert(rbmk_temp_data, colData["hullTemp"])
+                    end
+                    
+                end
+            end
+
         end
     end
 
@@ -55,7 +70,7 @@ while true do
             if redstone.getOutput(side) ~= signal_amt then redstone.setOutput(side, signal_amt) end
         end
     end
-    
+
     -- Yield (since we're done here)
     if coroutine.isyieldable() then
         coroutine.yield()
