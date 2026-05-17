@@ -1,15 +1,11 @@
 --[[
-Emergency Cooling Script v2
+Emergency Cooling Script v2.2
 Built for Mika Nuclear Power Plant (MkNPP)
-Replaces RBMK E-Cooling
-For now, Activates if > 750C and deactivates < 675C
+Replaces RBMK E-Cooling (Which was lost during the update)
+For now, Activates if > 750C and deactivates < 675C (Semi-mimics function of the old RBMK coolers)
 ]]--
 
-SYS_MODE = 0
-DBG_ENABLED = 0
-
--- Main section
-while true do
+function _G.main.rbmk_loop()
     local rbmk_com = component.list("rbmk_")
     local temp_buffer = {}
 
@@ -50,9 +46,5 @@ while true do
         rs.setOutput({15, 15, 15, 15, 15, 15})
     else
         rs.setOutput({0, 0, 0, 0, 0, 0})
-    end
-
-    if coroutine.isyieldable() then
-        coroutine.yield()
     end
 end
