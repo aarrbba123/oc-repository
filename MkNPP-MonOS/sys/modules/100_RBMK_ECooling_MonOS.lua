@@ -41,7 +41,7 @@ local function rbmk_loop()
         SYS_MODE = 0
     end
 
-    local rs = component.proxy(component.list("redstone")())
+    local rs = component.proxy(component.redstone)
     if SYS_MODE == 1 then
         rs.setOutput({15, 15, 15, 15, 15, 15})
     else

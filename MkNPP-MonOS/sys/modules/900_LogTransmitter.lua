@@ -5,10 +5,36 @@ local invoke = component.invoke()
 --- A key-context for remembering what we should do.
 local addrContexts = {}
 
---- Remove on invalid hrf3-net policy.
+--- Remove on an invalid hrf3-net packet policy.
 --- Why does its implementation look weird?
 --- Well, because returning true will make the function not repush the event, effectively removing it.
 local removeOnInvalid = true
+
+local function transmitLogs(netAddr, buf, first_line, last_line)
+    local sendBuf = {}
+    -- This is based off of manual calculations.
+    local curSendSize = 26
+    local curBuf = nil
+
+    local maxSendSize = networking.getMaxSendSize()
+    -- We're gonna do smth a lil different here.
+
+    for x = first_line, last_line do
+        if not curBuf == nil then
+            table.insert(sendBuf, curBuf)
+            curSendSize = curSendSize + #curBuf
+        end
+
+        curBuf = buf[x]
+
+        if curSendSize + #curBuf >= maxSendSize then
+            networking.send(netAddr, HPORT, table.unpack(sendBuf))
+            curSendSize = 26
+        end
+
+    end
+
+end
 
 local function parseCommands(evt, mdm)
     local receiverAddr, senderAddr, port, wirelessDist, id, command = table.unpack(evt, 1, 6)
@@ -34,7 +60,12 @@ local function parseCommands(evt, mdm)
             if logReq == "LEN" then
                 networking.send(senderAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #logData)
             elseif logReq == "LOG" then
-                -- TODO: Finish this!
+                if not payloadLen >= 4 then
+                    return removeOnInvalid
+                end
+                local first_line, last_line = table.unpack(evt, 9, 10)
+
+                transmitLogs(senderAddr, logData, first_line, last_line)
             end
 
         else

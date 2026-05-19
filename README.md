@@ -2,4 +2,5 @@
 
 A repository to store my OpenComputers Scripts/Programs.
 
-For now, it's quite small, since y'know, I just literally started coding opencomputers in the first place
+Do not ask why I made an entire OS and a networking protocol for saying "hey, you're reactor is overheating again™".
+I just did.

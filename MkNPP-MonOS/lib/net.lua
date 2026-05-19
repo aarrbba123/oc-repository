@@ -6,6 +6,10 @@ _G.networking.transmitBuffer = {}
 local modem = component.modem
 local invoke = component.invoke
 
+function networking.getMaxSendSize()
+    return invoke(modem, "maxPacketSize")
+end
+
 function networking.send(netAddr, port, ...)
     table.insert(networking.transmitBuffer, {netAddr, port, ...})
 end
