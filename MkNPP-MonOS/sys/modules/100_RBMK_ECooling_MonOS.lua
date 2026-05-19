@@ -5,7 +5,7 @@ Replaces RBMK E-Cooling (Which was lost during the update)
 For now, Activates if > 750C and deactivates < 675C (Semi-mimics function of the old RBMK coolers)
 ]]--
 
-function _G.main.rbmk_loop()
+local function rbmk_loop()
     local rbmk_com = component.list("rbmk_")
     local temp_buffer = {}
 
@@ -48,3 +48,4 @@ function _G.main.rbmk_loop()
         rs.setOutput({0, 0, 0, 0, 0, 0})
     end
 end
+klib.registerModule(rbmk_loop)

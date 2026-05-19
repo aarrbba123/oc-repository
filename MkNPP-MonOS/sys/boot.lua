@@ -29,17 +29,27 @@ _G.STDERR_BUF = {}
 -- Main functions. Any functions registered in this table will be ran
 _G.main = {}
 
+-- Driver™
+loadfile("/lib/driver.lua", "bt", _G)()
+driver.updateComponentBinds()
+
 -- Library files
 loadfile("/lib/net.lua", "bt", _G)()
 loadfile("/lib/event.lua", "bt", _G)()
 loadfile("/lib/iolib.lua", "bt", _G)()
+loadfile("/lib/klib.lua", "bt", _G)()
 
 -- Module files
 -- Load em'
+-- The functions registered to main 
 local moduleFiles = listdir("/sys/modules")
 for _, moduleName in ipairs(moduleFiles) do
     loadfile("/sys/modules/" .. moduleName, "bt", _G)()
 end
+
+-- Audibly celebrate (successful boot)
+computer.beep(1500, 0.5)
+computer.beep(2000, 0.3)
 
 -- Kernel
 loadfile("/sys/main.lua", "bt", _G)()

@@ -9,6 +9,7 @@ local function allToStr(...)
     for _, val in ipairs(params) do
         dataBuffer = dataBuffer .. tostring(val)
     end
+    return dataBuffer
 end
 
 function iolib.print(...)

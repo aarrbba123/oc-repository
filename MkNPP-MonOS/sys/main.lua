@@ -6,9 +6,9 @@ PASSWD = "kNPP_P@ss123"
 
 -- Main section
 while true do
-    for _, func in ipairs(_G.main) do
-        -- 10/10 safety, will do again later (not)
-        func()
+    -- Not using ipairs ensures it loads in the order the modules register
+    for i = 1, #main do
+        main[i]()
     end
 
     -- end of loop

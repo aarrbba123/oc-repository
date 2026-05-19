@@ -3,14 +3,22 @@
 _G.networking = {}
 _G.networking.transmitBuffer = {}
 
-networking.modem = component.list("modem")()
+local modem = component.modem
+local invoke = component.invoke
 
-local modem = networking.modem
+function networking.send(netAddr, port, ...)
+    table.insert(networking.transmitBuffer, {netAddr, port, ...})
+end
 
--- Yes, the function of transmitting log data is implemented in a library. This OS wasn't meant for generic usage, remember?
-function networking.transmitLogs(netAddr, type, startIndex, endIndex)
-    local maxTransmitSize = invoke(modem, "maxPacketSize")
-
+-- Fragmentation my beloved
+function networking.processTransmitBuffer()
+    local newBuffer = {}
+    for _, packetData in ipairs(networking.transmitBuffer) do
+        local sent = invoke(modem, "send", table.unpack(packetData))
+        if not sent then
+            table.insert(newBuffer, packetData)
+        end
+    end
     
-
+    _G.networking.transmitBuffer = newBuffer
 end
