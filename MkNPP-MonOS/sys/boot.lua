@@ -11,7 +11,7 @@ function _G.loadfile(path, mode, env)
 
     repeat
         local dt = invoke(rootAddr, "read", fd, math.maxinteger or math.huge)
-        buf = buf .. dt
+        buf = buf .. (dt or "")
     until not dt
 
     return load(buf, "=" .. path, mode, env)
