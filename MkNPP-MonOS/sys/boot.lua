@@ -49,8 +49,8 @@ for _, moduleName in ipairs(moduleFiles) do
 end
 
 -- Audibly celebrate (successful boot)
-computer.beep(1500, 0.5)
-computer.beep(2000, 0.3)
+computer.beep(1500, 0.3)
+computer.beep(2000, 0.2)
 
 -- Kernel
 loadfile("/sys/main.lua", "bt", _G)()

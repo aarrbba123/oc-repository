@@ -13,5 +13,4 @@ while true do
 
     -- end of loop
     event.flushEvents()
-    os.sleep()
 end

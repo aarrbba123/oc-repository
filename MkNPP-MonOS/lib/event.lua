@@ -14,8 +14,10 @@ end
 function event.pullAllEvents()
     local buf = {}
     repeat
-        local sig = table.pack(computer.pullSignal())
-        table.insert(buf, sig)
+        local sig = table.pack(computer.pullSignal(1))
+        if sig then
+            table.insert(buf, sig)
+        end
     until not sig --ma
     return buf
 end

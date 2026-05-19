@@ -20,6 +20,11 @@ Normally, I would use an existing format. But since either they're unavailable o
 
 ... (Rest of Payload Data)
 
+### PNG (Ping)
+
+(Used to ping computers to test responsiveness)
+No additional params.
+
 ### ACK (Acknowledge)
 
 No additional params

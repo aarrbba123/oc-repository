@@ -1,6 +1,6 @@
 --- HPort is basically the official port
 local HPORT = 12930
-local invoke = component.invoke()
+local invoke = component.invoke
 
 --- A key-context for remembering what we should do.
 local addrContexts = {}
@@ -59,6 +59,7 @@ local function parseCommands(evt, mdm)
 
             if logReq == "LEN" then
                 networking.send(senderAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #logData)
+                return true
             elseif logReq == "LOG" then
                 if not payloadLen >= 4 then
                     return removeOnInvalid
@@ -66,12 +67,19 @@ local function parseCommands(evt, mdm)
                 local first_line, last_line = table.unpack(evt, 9, 10)
 
                 transmitLogs(senderAddr, logData, first_line, last_line)
+                return true
+            else
+                return removeOnInvalid
             end
 
         else
             -- too smol.m4v
             return removeOnInvalid
         end
+    elseif command == "PNG" then
+        computer.beep(".")
+        return true
+
     else
         -- Invalid request
         return removeOnInvalid
@@ -80,7 +88,7 @@ local function parseCommands(evt, mdm)
 end
 
 local function logTransmitter()
-    local mdm = networking.modem
+    local mdm = component.modem
     local print = iolib.print
     if not invoke(mdm, "isOpen", HPORT) then
         print("Opening HRF3-Net Port @ " .. tostring(HPORT))
