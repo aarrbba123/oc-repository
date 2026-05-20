@@ -30,7 +30,7 @@ function utils.tableToStr(tab)
 
         dataBuffer = dataBuffer .. tostring(sVal) .. nVal
     end
-    dataBuffer = dataBuffer .. " }"
+    dataBuffer = dataBuffer .. "}"
     return dataBuffer
 end
 
@@ -43,8 +43,6 @@ function utils.allToStr(...)
         if type(val) == "table" then
             -- pls don't forget to unpack the input table k thx
             sVal = utils.tableToStr(val)
-        elseif type(val) == "string" then
-            sVal = representStr(val)
         end
 
         dataBuffer = dataBuffer .. tostring(sVal)

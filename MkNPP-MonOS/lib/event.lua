@@ -16,10 +16,10 @@ function event.pullAllEvents()
     repeat
         local val = computer.pullSignal(0)
         if val then
-            local sig = table.pack()
+            local sig = table.pack(val)
             table.insert(buf, sig)
         end
-    until not sig --ma
+    until not val --ma
     return buf
 end
 
