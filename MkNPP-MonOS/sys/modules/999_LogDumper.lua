@@ -6,17 +6,18 @@ local OFFLINE_DEBUG_INTERVAL = 100
 local OFFLINE_DEBUG_TICK = 0
 
 local invoke = component.invoke
-local outFS = component.getBootAddress()
+local print = iolib.print
+local outFS = computer.getBootAddress()
 
 if OFFLINE_DEBUG_MODE then
     local function logDumper()
-        if not invoke(outFS, "exists", "/log/") then
-            invoke(outFS, "makeDirectory", "/log/")
-            iolib.print("Successfully setted up log directory")
-        end
-        
         if OFFLINE_DEBUG_TICK >= OFFLINE_DEBUG_INTERVAL then
             OFFLINE_DEBUG_TICK = 0
+            if not invoke(outFS, "exists", "/log/") then
+                invoke(outFS, "makeDirectory", "/log/")
+                print("Successfully setted up log directory")
+            end
+
             print("[Log Dumper] Dumping log data...")
             local fd = invoke(outFS, "open", "/log/outLog.txt", "wt")
             invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDOUT_BUF)))
