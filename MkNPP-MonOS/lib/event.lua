@@ -14,7 +14,7 @@ end
 function event.pullAllEvents()
     local buf = {}
     repeat
-        local val = computer.pullSignal(0.1)
+        local val = computer.pullSignal(0)
         if val then
             local sig = table.pack()
             table.insert(buf, sig)
