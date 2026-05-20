@@ -2,22 +2,12 @@
 
 _G.iolib = {}
 
-local function allToStr(...)
-    local params = table.pack(...)
-    local dataBuffer = ""
-
-    for _, val in ipairs(params) do
-        dataBuffer = dataBuffer .. tostring(val)
-    end
-    return dataBuffer
-end
-
 function iolib.print(...)
-    table.insert(_G.STDOUT_BUF, allToStr(...))
+    table.insert(_G.STDOUT_BUF, utils.allToStr(...))
 end
 
 function iolib.error(...)
-    table.insert(_G.STDERR_BUF, allToStr(...))
+    table.insert(_G.STDERR_BUF, utils.allToStr(...))
 end
 
 function iolib.flushBuffer(type)

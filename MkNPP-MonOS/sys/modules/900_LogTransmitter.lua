@@ -1,14 +1,15 @@
---- HPort is basically the official port
-local HPORT = 12930
 local invoke = component.invoke
 
 --- A key-context for remembering what we should do.
+--- Used for TCP-based mode
 local addrContexts = {}
 
 --- Remove on an invalid hrf3-net packet policy.
 --- Why does its implementation look weird?
 --- Well, because returning true will make the function not repush the event, effectively removing it.
 local removeOnInvalid = true
+--- HPort is basically the official port
+local HPORT = 12930
 
 local function transmitLogs(netAddr, buf, first_line, last_line)
     local sendBuf = {}
@@ -40,7 +41,7 @@ local function parseCommands(evt, mdm)
     local receiverAddr, senderAddr, port, wirelessDist, id, command = table.unpack(evt, 1, 6)
     local payloadLen = #evt - 6
 
-    if id ~= "hrf3-net" or port ~= HPORT then
+    if not (id == "hrf3-net" or port == HPORT) then
         return false
     end
 
@@ -101,7 +102,7 @@ local function logTransmitter()
         for _, evt in ipairs(evtList) do
             -- Your packets are around 6 values or more
             local valid = false
-            if #evt > 6 then
+            if #evt >= 6 then
                 valid = parseCommands(evt, mdm)
             end
 

@@ -34,11 +34,11 @@ loadfile("/lib/driver.lua", "bt", _G)()
 driver.updateComponentBinds()
 
 -- Library files
+loadfile("/lib/utils.lua", "bt", _G)()
 loadfile("/lib/net.lua", "bt", _G)()
 loadfile("/lib/event.lua", "bt", _G)()
 loadfile("/lib/iolib.lua", "bt", _G)()
 loadfile("/lib/klib.lua", "bt", _G)()
-loadfile("/lib/utils.lua", "bt", _G)()
 
 -- Module files
 -- Load em'

@@ -5,6 +5,15 @@ Replaces RBMK E-Cooling (Which was lost during the update)
 For now, Activates if > 750C and deactivates < 675C (Semi-mimics function of the old RBMK coolers)
 ]]--
 
+local printInterval = 20
+local curPrintNum = 0
+
+local function printToLog(...)
+    if curPrintNum >= 20 then
+        iolib.print(...)
+    end
+end
+
 local function rbmk_loop()
     local rbmk_com = component.list("rbmk_")
     local temp_buffer = {}
@@ -44,8 +53,16 @@ local function rbmk_loop()
     local rs = component.proxy(component.redstone)
     if SYS_MODE == 1 then
         rs.setOutput({15, 15, 15, 15, 15, 15})
+        printToLog("!!!!! EMERGENCY COOLING ACTIVE !!!!!")
     else
         rs.setOutput({0, 0, 0, 0, 0, 0})
+    end
+
+    printToLog("[RBMK Monitoring] avg_t: ", avg_temp, " current MODE: ", SYS_MODE)
+
+    curPrintNum = curPrintNum + 1
+    if curPrintNum > 20 then
+        curPrintNum = 0
     end
 end
 klib.registerModule(rbmk_loop)
