@@ -3,11 +3,11 @@
 _G.iolib = {}
 
 function iolib.print(...)
-    table.insert(_G.STDOUT_BUF, utils.allToStr(...))
+    table.insert(_G.STDOUT_BUF, utils.allToStr(...) .. "\n")
 end
 
 function iolib.error(...)
-    table.insert(_G.STDERR_BUF, utils.allToStr(...))
+    table.insert(_G.STDERR_BUF, utils.allToStr(...) .. "\n")
 end
 
 function iolib.flushBuffer(type)

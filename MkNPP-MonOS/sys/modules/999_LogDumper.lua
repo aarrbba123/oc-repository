@@ -19,12 +19,12 @@ if OFFLINE_DEBUG_MODE then
             end
 
             print("[Log Dumper] Dumping log data...")
-            local fd = invoke(outFS, "open", "/log/outLog.txt", "wt")
+            local fd = invoke(outFS, "open", "/log/outLog.txt", "w")
             invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDOUT_BUF)))
             invoke(outFS, "close", fd)
 
             print("[Log Dumper] Dumping err data...")
-            local fd = invoke(outFS, "open", "/log/outErr.txt", "wt")
+            fd = invoke(outFS, "open", "/log/outErr.txt", "w")
             invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDERR_BUF)))
             invoke(outFS, "close", fd)
             print("[Log Dumper] Log dump complete!")
