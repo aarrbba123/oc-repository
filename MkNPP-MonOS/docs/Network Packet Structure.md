@@ -44,7 +44,7 @@ No additional params
 #### Data Type
 
 `LEN`, length_val
-`LOG`, first_line, log_string_1, ..., log_string_n
+`LOG`, first_line, log_string (null terminated for each line)
 
 ### LOG_REQ (Log Request)
 
