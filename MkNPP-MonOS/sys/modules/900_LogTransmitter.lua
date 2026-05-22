@@ -11,6 +11,19 @@ local removeOnInvalid = true
 --- HPort is basically the official port
 local HPORT = 12930
 
+local function serializeBasic(...)
+    local params = table.pack(...)
+    if #params == 0 then
+        return ""
+    else
+        local retBuf = params[1]
+        for i = 2, #params do
+            retBuf = retBuf .. '\0' .. params[i]
+        end
+        return retBuf
+    end
+end
+
 local function transmitLogs(netAddr, buf, first_line, last_line)
     local sendBuf = {}
     -- This is based off of manual calculations.
@@ -29,7 +42,7 @@ local function transmitLogs(netAddr, buf, first_line, last_line)
         curBuf = buf[x]
 
         if curSendSize + #curBuf >= maxSendSize then
-            networking.send(netAddr, HPORT, table.unpack(sendBuf))
+            networking.send(netAddr, HPORT, serializeBasic(table.unpack(sendBuf)))
             curSendSize = 26
         end
 
@@ -79,6 +92,7 @@ local function parseCommands(evt, mdm)
         end
     elseif command == "PNG" then
         computer.beep(".")
+        networking.send(senderAddr, port, "hrf3-net", "ACK")
         return true
 
     else
