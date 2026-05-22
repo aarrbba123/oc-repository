@@ -15,10 +15,11 @@ function event.pullAllEvents()
     local buf = {}
     repeat
         local val = table.pack(computer.pullSignal(0))
-        if val then
+        local eType = val[1]
+        if eType then
             table.insert(buf, val)
         end
-    until not val --ma
+    until not type
     return buf
 end
 
@@ -41,5 +42,8 @@ function event.pullEvents(eventType)
 end
 
 function event.flushEvents()
-    event.pullAllEvents()
+    repeat
+        local val = table.pack(computer.pullSignal(0))
+        local eType = val[1]
+    until not eType
 end
