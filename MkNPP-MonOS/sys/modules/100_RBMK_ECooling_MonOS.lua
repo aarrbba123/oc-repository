@@ -5,11 +5,11 @@ Replaces RBMK E-Cooling (Which was lost during the update)
 For now, Activates if > 750C and deactivates < 675C (Semi-mimics function of the old RBMK coolers)
 ]]--
 
-local printInterval = 20
+local printInterval = 40
 local curPrintNum = 0
 
 local function printToLog(...)
-    if curPrintNum >= 20 then
+    if curPrintNum >= printInterval then
         iolib.print(...)
     end
 end
