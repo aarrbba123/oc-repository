@@ -39,6 +39,7 @@ loadfile("/lib/net.lua", "bt", _G)()
 loadfile("/lib/event.lua", "bt", _G)()
 loadfile("/lib/iolib.lua", "bt", _G)()
 loadfile("/lib/klib.lua", "bt", _G)()
+loadfile("/lib/logger.lua", "bt", _G)()
 
 -- Module files
 -- Load em'

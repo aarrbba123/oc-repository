@@ -13,21 +13,7 @@ if OFFLINE_DEBUG_MODE then
     local function logDumper()
         if OFFLINE_DEBUG_TICK >= OFFLINE_DEBUG_INTERVAL then
             OFFLINE_DEBUG_TICK = 0
-            if not invoke(outFS, "exists", "/log/") then
-                invoke(outFS, "makeDirectory", "/log/")
-                print("Successfully setted up log directory")
-            end
-
-            print("[Log Dumper] Dumping log data...")
-            local fd = invoke(outFS, "open", "/log/outLog.txt", "w")
-            invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDOUT_BUF)))
-            invoke(outFS, "close", fd)
-
-            print("[Log Dumper] Dumping err data...")
-            fd = invoke(outFS, "open", "/log/outErr.txt", "w")
-            invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDERR_BUF)))
-            invoke(outFS, "close", fd)
-            print("[Log Dumper] Log dump complete!")
+            logger.dump()
         else
             OFFLINE_DEBUG_TICK = OFFLINE_DEBUG_TICK + 1
 
