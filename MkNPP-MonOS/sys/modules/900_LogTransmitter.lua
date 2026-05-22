@@ -131,4 +131,4 @@ local function logTransmitter()
     end
 end
 klib.registerModule(logTransmitter)
-iolib.print("Successfully registered LogTransmitter/hrf3-net server!")
+iolib.print("LogTransmitter/hrf3-net server registered successfully!")

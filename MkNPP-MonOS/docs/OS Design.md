@@ -16,9 +16,11 @@ Finally, the kernel (which is `main.lua`, btw) loads in and the main loop is exe
 
 ## How it runs
 
+It's essentially a glorified superloop.
 The modules, which are stored in the `main` global variable, are executed in alphabetical order.
 All functions of the os (with the sole exception of flushing events) are ran through it.
-Due to inexperience, all calls/function runs are **UNSAFE** and can crash the system.
+~~Due to inexperience, all calls/function runs are **UNSAFE** and can crash the system.~~
+(As of commit `2abe1c7`, all modules are called with `xpcall`)
 
 ## What the OS can't do
 

@@ -21,6 +21,7 @@ local function kernelErrHandler(err)
     print("!!! KERNEL ALERT !!!")
     print("A kernel module has encountered an error!")
     print(err)
+    print("!!! KERNEL ALERT !!!")
 end
 
 local function panic(...)
@@ -30,6 +31,8 @@ local function panic(...)
     logger.dump()
     assert(false, "Kernel Panicked, dumped log data to disk!")
 end
+
+print("----- MAIN LOOP STARTED -----")
 
 -- Main section
 while true do

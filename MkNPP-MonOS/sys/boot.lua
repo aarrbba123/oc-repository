@@ -53,5 +53,7 @@ end
 computer.beep(1500, 0.3)
 computer.beep(2000, 0.2)
 
+iolib.print("Boot Successful!")
+
 -- Kernel
 loadfile("/sys/main.lua", "bt", _G)()

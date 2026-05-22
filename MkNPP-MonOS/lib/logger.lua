@@ -3,6 +3,7 @@
 _G.logger = {}
 
 local invoke = component.invoke
+local print = iolib.print
 local outFS = computer.getBootAddress()
 
 function logger.dump()
