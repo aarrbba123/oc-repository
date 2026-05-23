@@ -49,3 +49,11 @@ function utils.allToStr(...)
     end
     return dataBuffer
 end
+
+function utils.getFreeMem()
+    local ret = computer.freeMemory()
+    for i = 0, 10 do
+        ret = math.min(ret, computer.freeMemory())
+    end
+    return ret
+end

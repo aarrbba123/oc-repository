@@ -40,13 +40,16 @@ while true do
     for i = 1, #main do
         xpcall(main[i], kernelErrHandler)
 
-        local usedMemory = computer.totalMemory() - computer.freeMemory()
+        local freeMemory = utils.getFreeMem()
+        local usedMemory = computer.totalMemory() - freeMemory
         local usedPercent = usedMemory / computer.totalMemory()
         if usedPercent >= HMEM_PRESSURE then
-            panic("Critically Low Memory! (Free Left: ", computer.freeMemory(), ")")
+            panic("Critically Low Memory! (Free Left: ", freeMemory, " [", freeMemory / 1000, " KB])")
+            print("(Free MEM Left:", freeMemory, " bytes [", freeMemory, " KB])")
         elseif usedPercent >= MMEM_PRESSURE then
             doGC()
-            print("[Kernel] Performed GC due to low memory. (Free Left: ", computer.freeMemory(), " )")
+            print("[Kernel] Performed GC due to low memory!")
+            print("(Free MEM Left:", freeMemory, " bytes [", freeMemory, " KB])")
         end
     end
 
