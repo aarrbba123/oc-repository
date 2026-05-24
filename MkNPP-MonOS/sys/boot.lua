@@ -41,6 +41,11 @@ loadfile("/lib/iolib.lua", "bt", _G)()
 loadfile("/lib/klib.lua", "bt", _G)()
 loadfile("/lib/logger.lua", "bt", _G)()
 
+-- Global functions
+
+-- Even in MonOS, this global is one of the most useful.
+_G.print = iolib.print
+
 -- Module files
 -- Load em'
 -- The functions registered to main 

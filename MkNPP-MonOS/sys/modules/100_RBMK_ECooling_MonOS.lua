@@ -8,11 +8,8 @@ For now, Activates if > 750C and deactivates < 675C (Semi-mimics function of the
 local printInterval = 40
 local curPrintNum = 0
 
-local function printToLog(...)
-    if curPrintNum >= printInterval then
-        iolib.print(...)
-    end
-end
+local print = iolib.print
+local invoke = component.invoke
 
 local function rbmk_loop()
     local rbmk_com = component.list("rbmk_")
@@ -20,17 +17,14 @@ local function rbmk_loop()
 
     for addr, cType in pairs(rbmk_com) do
         if not (cType == "rbmk_outgasser" or cType == "rbmk_crane" or cType == "rbmk_console") then
-            local col = component.proxy(addr)
-            table.insert(temp_buffer, col.getHeat())
+            table.insert(temp_buffer, invoke(addr, "getHeat"))
 
         elseif cType == "rbmk_console" then
-            local consl = component.proxy(addr)
-
-            for y = 0, 15, 1 do
-                for x = 0, 15, 1 do
-                    local col = consl.getColumnData(x, y)
+            for y = 0, 15 do
+                for x = 0, 15 do
+                    local col = invoke(addr, "getColumnData", x, y)
                     if col ~= nil then
-                        table.insert(temp_buffer, col.hullTemp)
+                        table.insert(temp_buffer, col["hullTemp"])
                     end
                 end
             end
@@ -50,19 +44,19 @@ local function rbmk_loop()
         SYS_MODE = 0
     end
 
-    local rs = component.proxy(component.redstone)
+    local rs = component.redstone
     if SYS_MODE == 1 then
-        rs.setOutput({15, 15, 15, 15, 15, 15})
-        printToLog("!!!!! EMERGENCY COOLING ACTIVE !!!!!")
+        invoke(rs, "setOutput", {15, 15, 15, 15, 15, 15})
+        print("!!!!! EMERGENCY COOLING ACTIVE !!!!!")
     else
-        rs.setOutput({0, 0, 0, 0, 0, 0})
+        invoke(rs, "setOutput", {0, 0, 0, 0, 0, 0})
     end
 
-    printToLog("[RBMK Monitoring] avg_t: ", avg_temp, " current MODE: ", SYS_MODE)
-
     curPrintNum = curPrintNum + 1
-    if curPrintNum > 20 then
+    if curPrintNum > printInterval then
+        print("[RBMK Monitoring] avg_t: ", avg_temp, " current MODE: ", SYS_MODE)
         curPrintNum = 0
     end
 end
 klib.registerModule(rbmk_loop)
+print("RBMK Monitoring System successfully registered!")

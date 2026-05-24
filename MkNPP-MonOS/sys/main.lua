@@ -2,10 +2,16 @@ SYS_MODE = 0
 DBG_ENABLED = 0
 PASSWD = "kNPP_P@ss123"
 
+--- High Memory Pressure threshold. Crashes the system
 local HMEM_PRESSURE = 0.9
+
+--- Moderate Memory Pressure threshold. forces GC to occur to prevent using too much memory.
 local MMEM_PRESSURE = 0.69
 
-local print = iolib.print
+--- Amount of module errors that can occur before the system crashes. < 0 to disable
+local ERR_THRESHOLD = 0
+local ERR_COUNT = 0
+
 local error = iolib.error
 
 -- Init section
@@ -17,19 +23,26 @@ local function doGC()
     end
 end
 
-local function kernelErrHandler(err)
-    print("!!! KERNEL ALERT !!!")
-    print("A kernel module has encountered an error!")
-    print(err)
-    print("!!! KERNEL ALERT !!!")
-end
-
 local function panic(...)
     error("!!! KERNEL PANIC !!!")
     error(...)
     error("!!! KERNEL PANIC !!!")
     logger.dump()
     assert(false, "Kernel Panicked, dumped log data to disk!")
+end
+
+local function kernelErrHandler(err)
+    error("- KERNEL ALERT -")
+    error("A kernel module has encountered an error!")
+    error(err)
+    error("- KERNEL ALERT -")
+
+    print("[Kernel] A module has encountered an error!")
+    if ERR_COUNT >= ERR_THRESHOLD and ERR_THRESHOLD >= 0 then
+        panic("The amount of module errors encountered has surpassed acceptable amounts, crashing!")
+    end
+
+    ERR_COUNT = ERR_COUNT + 1
 end
 
 print("----- MAIN LOOP STARTED -----")
@@ -43,16 +56,18 @@ while true do
         local freeMemory = utils.getFreeMem()
         local usedMemory = computer.totalMemory() - freeMemory
         local usedPercent = usedMemory / computer.totalMemory()
+
         if usedPercent >= HMEM_PRESSURE then
             panic("Critically Low Memory! (Free Left: ", freeMemory, " [", freeMemory / 1000, " KB])")
-            print("(Free MEM Left:", freeMemory, " bytes [", freeMemory, " KB])")
         elseif usedPercent >= MMEM_PRESSURE then
             doGC()
             print("[Kernel] Performed GC due to low memory!")
-            print("(Free MEM Left:", freeMemory, " bytes [", freeMemory, " KB])")
+            print("(Free MEM Left:", freeMemory, " bytes [", freeMemory / 1000, " KB])")
         end
     end
 
     -- end of loop
+    -- yes, this will flush anything, including valid hrf3-net packets.
+    -- TODO: Lifetime-based event clears.
     event.flushEvents()
 end

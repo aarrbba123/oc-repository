@@ -5,7 +5,11 @@ if #params < 2 or (type(tonumber(params[1])) ~= "number" or type(params[2]) ~= "
     os.exit()
 end
 
-local modem = component.modem
+local component = require("component")
+local computer = require("computer")
+local event = require("event")
+
+local modem = component.getPrimary("modem")
 local port = tonumber(params[1])
 
 local locallyManaged = false
