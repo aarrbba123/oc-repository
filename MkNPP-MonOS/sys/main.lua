@@ -70,7 +70,6 @@ while true do
     end
 
     -- end of loop
-    -- yes, this will flush anything, including valid hrf3-net packets.
     event.flushEvents()
     event.processQueue()
 end
