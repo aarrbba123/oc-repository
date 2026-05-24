@@ -55,43 +55,6 @@ local function basicDeserialize(val)
     return retBuf
 end
 
-local function checkHrfNetPacket(netID, netCmd)
-    if type(netID) ~= "string" and type(netCmd) ~= "string" then
-        return false
-    end
+-- TL;DR: Ping, wait 1-2s, grab stored (n' valid) hrf3-net packets to find valid servers,
+-- Get Serialization Mode & Command List & Logging buffer (if exists)
 
-    if netID == "hrf3-net" then
-        for _, chk in ipairs({"LOG_DAT", "LOG_REQ", "ACK", "DEC", "PNG"}) do
-            if netCmd == chk then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-local function scanPackets()
-    local evtTable = {}
-    repeat
-        local evt = table.pack(event.pull(0, "modem_message"))
-        local type = evt[1]
-        if type then
-            table.insert(evtTable, evt)
-        end
-    until not type
-
-    for _, evt in ipairs(evtTable) do
-        if #evt >= 7 and checkHrfNetPacket(table.unpack(evt, 5, 6)) then
-            local sender
-        end
-    end
-end
-
--- Main code
-
-print("Now working on hrf3-net @ port " .. argv[1])
-
-while true do
-    checkInterrupt()
-    scanPackets()
-end

@@ -50,6 +50,14 @@ function utils.allToStr(...)
     return dataBuffer
 end
 
+function utils.capStrToSize(str, size, cont)
+    cont = cont or ""
+
+    if #str > size then
+        return string.sub(str, 1, size - #cont) .. cont
+    end
+end
+
 function utils.getFreeMem()
     local ret = computer.freeMemory()
     for i = 0, 10 do

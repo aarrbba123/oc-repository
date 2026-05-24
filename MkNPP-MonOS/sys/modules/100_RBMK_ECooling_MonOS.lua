@@ -23,7 +23,7 @@ local function rbmk_loop()
             for y = 0, 15 do
                 for x = 0, 15 do
                     local col = invoke(addr, "getColumnData", x, y)
-                    if col ~= nil then
+                    if col then
                         table.insert(temp_buffer, col["hullTemp"])
                     end
                 end

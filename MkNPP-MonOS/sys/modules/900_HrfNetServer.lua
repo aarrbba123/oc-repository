@@ -46,21 +46,21 @@ local function getBufferNFromType(bufType)
     end
 end
 
-local function transmitInvalidPacket(senderAddr, reason)
-    reason = reason or ""
-    networking.send(senderAddr, port, "hrf3-net", "DEC", "INV_CMD", reason)
+local function transmitInvalidPacket(senderAddr, invReason, ...)
+    local reasonTbl = table.pack(...)
+    networking.send(senderAddr, port, "hrf3-net", "DEC", invReason, utils.allToStr(table.unpack(reasonTbl)))
 end
 
 local function transmitInvalidParamPacket(senderAddr, paramAmt)
-    transmitInvalidPacket(senderAddr, "Expected " .. tostring(paramAmt) .. " paramaters!")
+    transmitInvalidPacket(senderAddr, "INV_LEN", "Expected ", tostring(paramAmt), " paramaters!")
 end
 
 local function transmitInvalidSubCMDPacket(senderAddr, subCMD)
-    transmitInvalidPacket(senderAddr, "Invalid subcommand '" .. tostring(subCMD) .. "'!")
+    transmitInvalidPacket(senderAddr, "INV_SUB_CMD", "Invalid subcommand '", utils.capStrToSize(tostring(subCMD), 255, "..."), "'!")
 end
 
 local function transmitInvalidBufPacket(senderAddr, bufType)
-    transmitInvalidPacket(senderAddr, "Invalid buffer type '" .. tostring(bufType) .. "'!")
+    transmitInvalidPacket(senderAddr, "INV_BUF", "Invalid buffer type '", utils.capStrToSize(tostring(bufType), 255, "..."), "'!")
 end
 
 local function transmitLogs(senderAddr, bufType, first_line, last_line)
@@ -110,7 +110,7 @@ local function parsePacket(evtDat)
     -- Anything after here is based on a hrf3-net standard.
 
     if not validateList(supportedCMD, netCMD) then
-        transmitInvalidPacket(sendAddr, "Invalid hrf3-net command!")
+        transmitInvalidPacket(sendAddr, "INV_CMD", "Invalid hrf3-net command!")
         return removeOnInvalid
     end
 
@@ -164,7 +164,7 @@ local function parsePacket(evtDat)
 
             local fline, lline = table.unpack(evtDat, 10, 11)
             if type(fline) ~= "number" or type(lline) ~= "number" then
-                transmitInvalidPacket(sendAddr, "Expected first line and last line paramater to be a number!")
+                transmitInvalidPacket(sendAddr, "INV_PRM", "Expected first line and last line paramater to be a number!")
                 return removeOnInvalid
             end
 

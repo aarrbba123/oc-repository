@@ -42,8 +42,10 @@ No additional params
 
 - `INV_CMD`     = Invalid command
 - `INV_SUB_CMD` = Invalid subcommand
+- `INV_PRM`     = Invalid paramter
 - `INV_LEN`     = Invalid paramater length
 - `INV_BUF`     = Invalid buffer type
+- `OTHER`       = Pretty much a catch-all term
 
 ### GEN_REQ (General Request)
 
