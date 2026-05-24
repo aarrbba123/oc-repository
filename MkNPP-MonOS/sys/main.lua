@@ -51,7 +51,10 @@ print("----- MAIN LOOP STARTED -----")
 while true do
     -- Not using ipairs ensures it loads in the order the modules register
     for i = 1, #main do
-        xpcall(main[i], kernelErrHandler)
+        local stat = xpcall(main[i], kernelErrHandler)
+        if not stat then
+            print("xpcall returned a failiure!")
+        end
 
         local freeMemory = utils.getFreeMem()
         local usedMemory = computer.totalMemory() - freeMemory

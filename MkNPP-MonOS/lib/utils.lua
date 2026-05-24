@@ -8,6 +8,16 @@ function utils.inBounds(val, min, max)
     return true
 end
 
+function utils.inList(list, val)
+    for _, chk in ipairs(list) do
+        if val == chk then
+            return true
+        end
+    end
+
+    return false
+end
+
 local function representStr(str)
     return "\"" .. str .. "\""
 end

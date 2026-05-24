@@ -64,4 +64,10 @@ end
 
 -- TL;DR: Ping, wait 1-2s, grab stored (n' valid) hrf3-net packets to find valid servers,
 -- Get Serialization Mode & Command List & Logging buffer (if exists)
+if not mdm.isOpen(port) then
+    locallyManaged = true
+    mdm.open(port)
+    print("Opened @ port " .. tostring(port))
+end
 
+mdm.broadcast(port, "hrf3-net", "PNG")

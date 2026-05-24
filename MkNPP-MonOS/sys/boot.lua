@@ -29,6 +29,11 @@ _G.STDERR_BUF = {}
 -- Main functions. Any functions registered in this table will be ran
 _G.main = {}
 
+-- Event lifetime amount
+
+_G.event_lifetime = 2
+
+
 -- Driver™
 loadfile("/lib/driver.lua", "bt", _G)()
 driver.updateComponentBinds()

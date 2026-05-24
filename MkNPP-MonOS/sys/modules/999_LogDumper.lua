@@ -1,5 +1,5 @@
 --- Log dumper for offline use.
---- Use in case the online filesystem protocol is unusable
+--- Use in case the online hrf3-net protocol is unusable
 
 local OFFLINE_DEBUG_MODE = true
 local OFFLINE_DEBUG_INTERVAL = 100
@@ -16,7 +16,6 @@ if OFFLINE_DEBUG_MODE then
             logger.dump()
         else
             OFFLINE_DEBUG_TICK = OFFLINE_DEBUG_TICK + 1
-
         end
 
     end
