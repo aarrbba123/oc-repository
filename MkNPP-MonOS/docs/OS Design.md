@@ -22,6 +22,12 @@ All functions of the os (with the sole exception of flushing events) are ran thr
 ~~Due to inexperience, all calls/function runs are **UNSAFE** and can crash the system.~~
 (As of commit `2abe1c7`, all modules are called with `xpcall`)
 
+## How events are handled
+
+As of commit `05adedde`, events are first pushed using `processQueue` into an event buffer and assigned a number called its `lifetime`. It decrements by 1 every time the superloop finished and calls `flushEvents`.
+Once the event's `lifetime` reaches 0 and `flushEvents` is called, it will be cleared out.
+Otherwise, it will stay in the loop until a script, lib or program consumes the event.
+
 ## What the OS can't do
 
 1. Use mutiple filesytems

@@ -53,7 +53,7 @@ while true do
     for i = 1, #main do
         local stat = xpcall(main[i], kernelErrHandler)
         if not stat then
-            print("xpcall returned a failiure!")
+            print("[Kernel] xpcall returned a failiure!")
         end
 
         local freeMemory = utils.getFreeMem()
@@ -71,6 +71,6 @@ while true do
 
     -- end of loop
     -- yes, this will flush anything, including valid hrf3-net packets.
-    -- TODO: Lifetime-based event clears.
     event.flushEvents()
+    event.processQueue()
 end
