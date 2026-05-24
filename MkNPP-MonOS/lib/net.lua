@@ -9,6 +9,18 @@ function networking.getMaxSendSize()
     return computer.getDeviceInfo("modem")[component.modem]["capacity"]
 end
 
+function networking.isOpen(port)
+    return invoke(component.modem, "isOpen", port)
+end
+
+function networking.open(port)
+    return invoke(component.modem, "open", port)
+end
+
+function networking.close(port)
+    return invoke(component.modem, "close", port)
+end
+
 function networking.send(netAddr, port, ...)
     table.insert(networking.transmitBuffer, {netAddr, port, ...})
 end

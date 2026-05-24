@@ -181,6 +181,10 @@ local function parsePacket(evtDat)
 end
 
 local function HrfNetServer()
+    if not networking.isOpen(12930) then
+        networking.open(12930)
+    end
+
     local evtTbl = event.pullEvents("modem_message")
     local repushEvtTbl = {}
     for _, pck in ipairs(evtTbl) do

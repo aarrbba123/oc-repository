@@ -21,6 +21,8 @@ local event = require("event")
 local addrContext = nil
 local packetBuffer = {}
 
+local hrfNetBuffer = {}
+
 local mdm = component.getPrimary("modem")
 
 local function exit()
@@ -53,6 +55,11 @@ local function basicDeserialize(val)
     end
 
     return retBuf
+end
+
+local function absorbHrfNetPackets(...)
+    local packet = table.pack(...)
+    
 end
 
 -- TL;DR: Ping, wait 1-2s, grab stored (n' valid) hrf3-net packets to find valid servers,
