@@ -26,6 +26,9 @@ end
 _G.STDOUT_BUF = {}
 _G.STDERR_BUF = {}
 
+_G.STDOUT_OFFSET = 1
+_G.STDERR_OFFSET = 1
+
 -- Main functions. Any functions registered in this table will be ran
 _G.main = {}
 

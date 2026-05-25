@@ -12,6 +12,9 @@ local MMEM_PRESSURE = 0.69
 local ERR_THRESHOLD = 0
 local ERR_COUNT = 0
 
+--- Panick variable which forces a panic outside safety
+local PANIC = nil
+
 local error = iolib.error
 
 -- Init section
@@ -39,7 +42,7 @@ local function kernelErrHandler(err)
 
     print("[Kernel] A module has encountered an error!")
     if ERR_COUNT >= ERR_THRESHOLD and ERR_THRESHOLD >= 0 then
-        panic("The amount of module errors encountered has surpassed acceptable amounts, crashing!")
+        PANIC = table.pack("The amount of module errors encountered has surpassed acceptable amounts, crashing!")
     end
 
     ERR_COUNT = ERR_COUNT + 1
@@ -59,6 +62,10 @@ while true do
         local freeMemory = utils.getFreeMem()
         local usedMemory = computer.totalMemory() - freeMemory
         local usedPercent = usedMemory / computer.totalMemory()
+
+        if PANIC then
+            panic(table.unpack(PANIC))
+        end
 
         if usedPercent >= HMEM_PRESSURE then
             panic("Critically Low Memory! (Free Left: ", freeMemory, " [", freeMemory / 1000, " KB])")

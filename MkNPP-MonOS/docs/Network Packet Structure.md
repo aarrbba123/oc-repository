@@ -80,7 +80,7 @@ No additional params
 
 #### Data Type
 
-`LEN`, length_val
+`LEN`, first_line, length_val
 `LOG`, first_line, log_string
 
 ### LOG_REQ (Log Request)

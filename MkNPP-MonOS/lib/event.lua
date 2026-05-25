@@ -12,6 +12,16 @@ function event.pushEvents(eventsData)
     end
 end
 
+function event.repushSingleEvent(eventData)
+    table.insert(event.eventBuffer, eventData)
+end
+
+function event.repushEvents(eventsData)
+    for _, evt in ipairs(eventsData) do
+        table.insert(event.eventBuffer, evt)
+    end
+end
+
 function event.pullAllEvents()
     local retBuffer = event.eventBuffer
     event.eventBuffer = {}

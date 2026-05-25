@@ -20,5 +20,5 @@ if OFFLINE_DEBUG_MODE then
 
     end
     klib.registerModule(logDumper)
-    print("Successfully registered offline logging module!")
+    print("Offline logging module registered successfully!")
 end

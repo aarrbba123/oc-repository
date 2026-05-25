@@ -153,7 +153,7 @@ local function parsePacket(evtDat)
 
         -- subcommand parsing
         if netSubCMD == "LEN" then
-            networking.send(sendAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #_G[getBufferNFromType(logType)])
+            networking.send(sendAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #_G, #_G[getBufferNFromType(logType)])
             return true
 
         elseif netSubCMD == "LOG" then
@@ -168,7 +168,13 @@ local function parsePacket(evtDat)
                 return removeOnInvalid
             end
 
-            transmitLogs(sendAddr, getBufferNFromType(logType), fline, lline)
+            -- secondary check to prevent error
+            local bufDat = getBufferNFromType(logType)
+            if not bufDat then
+                transmitInvalidBufPacket(sendAddr, bufDat)
+                return removeOnInvalid
+            end
+            transmitLogs(sendAddr, bufDat, fline, lline)
             return true
         end
 
