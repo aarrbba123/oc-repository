@@ -68,6 +68,10 @@ function utils.capStrToSize(str, size, cont)
     end
 end
 
+function utils.splitString(str, sep)
+    --- TODO: Finish this!
+end
+
 function utils.getFreeMem()
     local ret = computer.freeMemory()
     for i = 0, 10 do

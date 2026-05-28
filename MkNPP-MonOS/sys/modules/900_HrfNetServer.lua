@@ -2,9 +2,13 @@
 
 local port = 12930
 
+--- hrf3-net protocol version.
+local protocolVer = {0, 1}
+
 --- Removes invalid hrf3-net packets. Essentally `true` means it blocks any hrf3-net packet that is invalid,
 --- preventing scripts/programs ran later than this program from processing said hrf3-net packet.
---- dw, the events will be cleared at the end of the loop.
+--- Please note that re-registered events have the same lifetime, meaning that it will get removed as if it wasn't even processed at all.
+--- This is to protect from a OOM crash caused by DoS/DDoS
 local removeOnInvalid = true
 
 --- A list of commands supported and processed by the server
@@ -17,24 +21,14 @@ local supportedCMD = {"GEN_REQ", "LOG_REQ", "PNG"}
 local supportedBufType = {"LOG", "OUT", "ERR"}
 
 --- Supported General Requests
-local supportedGRQ = {"CMD", "MOD"}
+local supportedGRQ = {"CMD", "MOD", "VER"}
 
 --- Supported Log Requests
 local supportedLRQ = {"LEN", "LOG"}
 
-local function serializeBasic(tblData)
-    if #tblData ~= 0 then
-        local retData = tblData[1]
-        for i = 2, #tblData do
-            local val = tblData[i]
-            retData = retData .. '\0' .. val
-        end
-
-        return retData
-    else
-        return ""
-    end
-end
+--- Serialization-related stuff
+local seperator = string.char(81)
+local serializeBasic = serialization.serializeBasic
 
 local function getBufferNFromType(bufType)
     if bufType == "ERR" then
@@ -110,7 +104,7 @@ local function parsePacket(evtDat)
     -- Anything after here is based on a hrf3-net standard.
 
     if not validateList(supportedCMD, netCMD) then
-        transmitInvalidPacket(sendAddr, "INV_CMD", "Invalid hrf3-net command!")
+        transmitInvalidPacket(sendAddr, "INV_CMD", "Invalid hrf3-net command '" .. utils.capStrToSize(netCMD, 255, "...") .. "'!")
         return removeOnInvalid
     end
 
@@ -132,8 +126,10 @@ local function parsePacket(evtDat)
             networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "CMD", serializeBasic(supportedCMD))
             return true
         elseif netSubCMD == "MOD" then
-            networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "MOD", "BASIC")
+            networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "MOD", "BASIC", string.byte(seperator))
             return true
+        elseif netSubCMD == "VER" then
+            networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "VER", table.unpack(protocolVer))
         end
 
     elseif netCMD == "LOG_REQ" then
@@ -153,7 +149,7 @@ local function parsePacket(evtDat)
 
         -- subcommand parsing
         if netSubCMD == "LEN" then
-            networking.send(sendAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #_G, #_G[getBufferNFromType(logType)])
+            networking.send(sendAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #_G[getBufferNFromType(logType)])
             return true
 
         elseif netSubCMD == "LOG" then
@@ -200,7 +196,7 @@ local function HrfNetServer()
     end
 
     -- re-push events
-    event.pushEvents(repushEvtTbl)
+    event.repushEvents(repushEvtTbl)
 end
 klib.registerModule(HrfNetServer)
 print("Hrf3-Net Server V2 registered successfully!")

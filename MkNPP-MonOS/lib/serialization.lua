@@ -2,6 +2,16 @@
 
 _G.serialization = {}
 
-function serialization.serialize()
+function serialization.serializeBasic(tblData, sepChar)
+    if #tblData ~= 0 then
+        local retData = tblData[1]
+        for i = 2, #tblData do
+            local val = tblData[i]
+            retData = retData .. sepChar .. val
+        end
 
+        return retData
+    else
+        return ""
+    end
 end

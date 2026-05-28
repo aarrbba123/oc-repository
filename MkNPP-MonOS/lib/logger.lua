@@ -10,9 +10,23 @@ local function duplicateHandler(filePath, fileExt)
     local i = 1
     while invoke(outFS, "exists", repPath) do
         repPath = filePath .. " (" .. tostring(i) .. ")" .. fileExt
+        i = i + 1
     end
 
     return repPath
+end
+
+local function listDuplicates(filePath, fileExt)
+    local repPath = filePath .. fileExt
+    local retList = {}
+    local i = 1
+    while invoke(outFS, "exists", repPath) do
+        table.insert(retList, repPath)
+        repPath = filePath .. " (" .. tostring(i) .. ")" .. fileExt
+        i = i + 1
+    end
+
+    return retList
 end
 
 function logger.dump()
@@ -38,4 +52,22 @@ function logger.dump()
 
     _G.STDOUT_BUF = {}
     _G.STDERR_BUF = {}
+end
+
+local function getLogData(bufType, first_line, last_line)
+    if bufType == "STDERR_BUF" then
+        local fileList = listDuplicates("/log/outErr", ".txt")
+    else
+        local fileList = listDuplicates("/log/outLog", ".txt")
+    end
+
+    -- basically repeat from high to low until the first_line in buffer is lower than requested first_line
+end
+
+function logger.getLog(first_line, last_line)
+    return getLogData("STDOUT_BUF", first_line, last_line)
+end
+
+function logger.getErr(first_line, last_line)
+    return getLogData("STDERR_BUF", first_line, last_line)
 end

@@ -57,6 +57,7 @@ No additional params
 
 `CMD` - Gets all available commands supported by a server
 `MOD` - Gets serialization mode (Either `BASIC` or `ADVANCED` as a response)
+`VER` - Gets the server/protocol version (major, minor)
 
 ### GEN_DAT (General Data)
 
@@ -66,10 +67,11 @@ No additional params
 
 ... (Request Data)
 
-#### Request Type
+#### General Request Type
 
 - `CMD`, net_cmd_list (serialized)
-- `MOD`, `BASIC` (null seperated lists) or `ADVANCED` (OpenOS, MineOS, etc.)
+- `MOD`, `BASIC` (char seperated lists) or `ADVANCED` (the serialization library in OpenOS, MineOS, etc.), seperator_int (if `BASIC` serialization, use `string.char()` to convert to string)
+- `VER`, 0 (Major Version), 1 (Minor version)
 
 ### LOG_DAT (Log data)
 
@@ -90,7 +92,7 @@ No additional params
 
 ... (Additional Params)
 
-#### Request Type
+#### Log Request Type
 
 `LEN`
 `LOG`, first_line, last_line
