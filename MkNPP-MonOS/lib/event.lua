@@ -1,3 +1,4 @@
+--- The super-duper ultra complex subsystem that is the event library (not really, but still...)
 
 _G.event = {}
 _G.event.eventBuffer = {}

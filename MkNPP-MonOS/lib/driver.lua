@@ -1,11 +1,17 @@
 _G.driver = {}
 
+local componentList = {"gpu", "modem", "redstone", "screen"}
+
 function driver.updateComponentBinds()
-    component.gpu = component.list("gpu")()
-    component.modem = component.list("modem")()
-    component.redstone = component.list("redstone")()
-    component.screen = component.list("screen")()
+    for _, comp in ipairs(componentList) do
+        local primaryComponent = component.list(comp)()
+        if primaryComponent ~= nil then
+            component.setPrimary(comp, primaryComponent)
+        else
+            component.setPrimary(comp, nil)
+        end
+    end
 
     -- Classic filesystem list
-    component.filesystem = component.list("filesystem")
+    component.filesystems = component.list("filesystem")
 end

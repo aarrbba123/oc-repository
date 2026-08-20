@@ -2,20 +2,34 @@
 
 _G.logger = {}
 
+-- Only create another file IF we just booted
+logger.overrideID = nil
+
 local invoke = component.invoke
 local outFS = computer.getBootAddress()
 
 local function duplicateHandler(filePath, fileExt)
     local repPath = filePath .. fileExt
-    local i = 1
-    while invoke(outFS, "exists", repPath) do
-        repPath = filePath .. " (" .. tostring(i) .. ")" .. fileExt
-        i = i + 1
+
+    if logger.overrideID == nil then
+        local i = 1
+
+        while invoke(outFS, "exists", repPath) do
+            repPath = filePath .. " (" .. tostring(i) .. ")" .. fileExt
+            i = i + 1
+        end
+
+        logger.overrideID = i
+    else
+        repPath = filePath .. " (" .. tostring(logger.overrideID) .. ")" .. fileExt
+
     end
 
     return repPath
 end
 
+-- Gets the amount of duplicates
+-- I'm pretty sure regex does better than this. - future you
 local function listDuplicates(filePath, fileExt)
     local repPath = filePath .. fileExt
     local retList = {}
@@ -27,6 +41,25 @@ local function listDuplicates(filePath, fileExt)
     end
 
     return retList
+end
+
+local function getLog(id)
+    -- sir, we cannot get the future now, we need to wait until future is past before we can get the past now.
+    -- that one spaceballs scene, i think.
+    if id > logger.overrideID or id < 0 then
+        return nil
+    end
+
+    local fPath = "/log/outLog (" .. tostring(id) .. ").txt"
+
+    if not invoke(outFS, "exists", fPath) then
+        return nil
+    end
+
+    local fd = invoke(outFS, "open", fPath, "r")
+    local data = ""
+    
+
 end
 
 function logger.dump()
@@ -45,29 +78,6 @@ function logger.dump()
     invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDERR_BUF)))
     invoke(outFS, "close", fd)
     print("[Log Dumper] Log dump complete!")
-
-    -- flush logs
-    _G.STDOUT_OFFSET = #_G.STDOUT_BUF + 1
-    _G.STDERR_OFFSET = #_G.STDERR_BUF + 1
-
-    _G.STDOUT_BUF = {}
-    _G.STDERR_BUF = {}
 end
 
-local function getLogData(bufType, first_line, last_line)
-    if bufType == "STDERR_BUF" then
-        local fileList = listDuplicates("/log/outErr", ".txt")
-    else
-        local fileList = listDuplicates("/log/outLog", ".txt")
-    end
 
-    -- basically repeat from high to low until the first_line in buffer is lower than requested first_line
-end
-
-function logger.getLog(first_line, last_line)
-    return getLogData("STDOUT_BUF", first_line, last_line)
-end
-
-function logger.getErr(first_line, last_line)
-    return getLogData("STDERR_BUF", first_line, last_line)
-end

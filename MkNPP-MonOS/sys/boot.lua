@@ -33,9 +33,9 @@ _G.STDERR_OFFSET = 1
 _G.main = {}
 
 -- Event lifetime amount
+-- Higher numbers increase the likelihood of the system modules finding the event, but drastically increases memory consumption.
 
 _G.event_lifetime = 2
-
 
 -- Driver™
 loadfile("/lib/driver.lua", "bt", _G)()
