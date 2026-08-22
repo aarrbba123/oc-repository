@@ -1,13 +1,13 @@
 # Hrf3-Net v2 Packet Structure
 
 This version uses the new "advanced" deserialization system made for MonOS, and provides new features
-For compatibilty purposes, some features of Hrf3-Net from v1 is available
-Otherwise, 
+For compatibilty purposes, ~~~some features of Hrf3-Net from v1 is available~~~ Yea after commit `3c42978`, `Sender Address` is now required, breaking compatibility with older devices.
 
 ## Packet Structure
 
 1. Magic String (`hrf3-net`)
-2. PayloadID String
+2. Sender address
+3. PayloadID String
 
 ... [PayloadID-Dependant Data]
 
@@ -20,13 +20,13 @@ ALL SERVERS that support the protocol MUST `ACK` back.
 
 Optionally, some servers (i.e, ones found in MonOSv1, also beep)
 
-No Paramaters.
+No additional params
 
 ### ACK (Acknowledge)
 
-Used as a response for `PNG`. Nothing else sends this, really
+Used as a response for `PNG`.
 
-No Paramaters.
+No additional params
 
 ### DEC (Decline)
 
