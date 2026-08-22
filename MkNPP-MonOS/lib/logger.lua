@@ -5,6 +5,10 @@ _G.logger = {}
 -- Only create another file IF we just booted
 logger.overrideID = nil
 
+-- Dear logger: Please stfu
+-- Love: harraf3
+logger.forceDumpPrint = false
+
 local invoke = component.invoke
 local outFS = computer.getBootAddress()
 
@@ -63,21 +67,40 @@ local function getLog(id)
 end
 
 function logger.dump()
-    if not invoke(outFS, "exists", "/log/") then
+    if #_G.STDOUT_BUF ~= 0 and #_G.STDERR_BUF ~= 0 and not invoke(outFS, "exists", "/log/") then
         invoke(outFS, "makeDirectory", "/log/")
         print("Successfully setted up log directory")
     end
 
-    print("[Log Dumper] Dumping log data...")
-    local fd = invoke(outFS, "open", duplicateHandler("/log/outLog", ".txt"), "w")
-    invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDOUT_BUF)))
-    invoke(outFS, "close", fd)
+    if #_G.STDOUT_BUF ~= 0 or logger.forceDumpPrint then
+        print("[Log Dumper] Dumping log data...")
+        local fd = invoke(outFS, "open", duplicateHandler("/log/outLog", ".txt"), "a")
+        invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDOUT_BUF)))
+        invoke(outFS, "close", fd)
+    end
 
-    print("[Log Dumper] Dumping err data...")
-    fd = invoke(outFS, "open", duplicateHandler("/log/outErr", ".txt"), "w")
-    invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDERR_BUF)))
-    invoke(outFS, "close", fd)
-    print("[Log Dumper] Log dump complete!")
+    if #_G.STDERR_BUF ~= 0 or logger.forceDumpPrint then
+        print("[Log Dumper] Dumping err data...")
+        local fd = invoke(outFS, "open", duplicateHandler("/log/outErr", ".txt"), "a")
+        invoke(outFS, "write", fd, utils.allToStr(table.unpack(_G.STDERR_BUF)))
+        invoke(outFS, "close", fd)
+    end
+
+    if #_G.STDERR_BUF ~= 0 or #_G.STDOUT_BUF ~= 0 then
+        print("[Log Dumper] Log dump complete!")
+    end
+
+    -- Support for the ocelot debugging block(tm)
+    if component.ocelot ~= nil then
+        for _, str in ipairs(_G.STDOUT_BUF) do
+            component.ocelot.log("[LOG] " .. str)
+        end
+        for _, str in ipairs(_G.STDERR_BUF) do
+            component.ocelot.log("[ERR] " .. str)
+        end
+    end
+
+    -- Flush the buffers
+    _G.STDOUT_BUF = {}
+    _G.STDERR_BUF = {}
 end
-
-

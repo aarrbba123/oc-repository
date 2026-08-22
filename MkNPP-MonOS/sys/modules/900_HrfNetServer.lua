@@ -59,33 +59,35 @@ local addrContext = {}
 --- Useless, since we replaced it with a more advanced version of the basic serialization
 local seperator = string.char(81)
 
+--- Packet-Sending Functions ---
+
 --- Transmits a decline packet
 ---@param senderAddr string Sender's address to send to
 ---@param invReason string Reason for decline
 ---@param ... any Additional decline data
 local function transmitInvalidPacket(senderAddr, invReason, ...)
     local reasonTbl = table.pack(...)
-    networking.send(senderAddr, port, "hrf3-net", "DEC", invReason, serialization.serializeMonOS(reasonTbl))
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "DEC", invReason, serialization.serializeMonOS(reasonTbl))
 end
 
 ---Transmits an Acknowledge packet
 ---@param senderAddr string Sender's address to send to
 local function transmitAckPacket(senderAddr)
-    networking.send(senderAddr, port, "hrf3-net", "ACK")
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "ACK")
 end
 
 ---Transmits a General Data packet
 ---@param senderAddr string Sender's address to send to
 ---@param ... any Additional data
 local function transmitGenDataPacket(senderAddr, ...)
-    networking.send(senderAddr, port, "hrf3-net", "GEN_DAT", ...)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "GEN_DAT", ...)
 end
 
 ---Transmits a System Data packet
 ---@param senderAddr string Sender's address to send to
 ---@param ... any Additional data
 local function transmitSysDataPacket(senderAddr, ...)
-    networking.send(senderAddr, port, "hrf3-net", "SYS_DAT", ...)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "SYS_DAT", ...)
 end
 
 --- TCP MODE EXCLUSIVE PACKETS ---
@@ -94,7 +96,7 @@ end
 ---@param senderAddr string Sender's address to send to
 ---@param reason string Reason Code
 local function transmitTCPDisconnectPacket(senderAddr, reason)
-    networking.send(senderAddr, port, "hrf3-net", "TCP_DSC", reason)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "TCP_DSC", reason)
 end
 
 ---Transmits a TCP Data Packet
@@ -102,111 +104,19 @@ end
 ---@param packetID number The ID of the packet
 ---@param data string The data, serialized.
 local function transmitTCPDataPacket(senderAddr, packetID, data)
-    networking.send(senderAddr, port, "hrf3-net", "TCP_DAT", packetID, data)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "TCP_DAT", packetID, data)
 end
 
 ---Transmits a TCP Start Packet
 ---@param senderAddr string Sender's address to send to
 ---@param header table The TCP header
 local function transmitTCPStartPacket(senderAddr, header)
-    networking.send(senderAddr, port, "hrf3-net", "TCP_ST", serialization.serializeMonOS(header))
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "TCP_ST", serialization.serializeMonOS(header))
 end
 
---[[
-local function parsePacket(evtDat)
-    local dataSize = #evtDat - 5
-    if dataSize < 2 then
-        return false
-    end
+--- Helper Functions ---
 
-    local _, sendAddr, port, dist, netID, netCMD = table.unpack(evtDat, 2, 7)
-    if (type(netID) ~= "string" or type(netCMD) ~= "string") or netID ~= "hrf3-net" then
-        return false
-    end
-
-    -- Anything after here is based on a hrf3-net standard.
-
-    if not validateList(supportedCMD, netCMD) then
-        transmitInvalidPacket(sendAddr, "INV_CMD", "Invalid hrf3-net command '" .. utils.capStrToSize(netCMD, 255, "...") .. "'!")
-        return removeOnInvalid
-    end
-
-    -- Command parsing
-    if netCMD == "GEN_REQ" then
-        if dataSize < 3 then
-            transmitInvalidParamPacket(sendAddr, 3)
-            return removeOnInvalid
-        end
-
-        local netSubCMD = evtDat[8]
-        if type(netSubCMD) ~= "string" or not validateList(supportedGRQ, netSubCMD) then
-            transmitInvalidSubCMDPacket(sendAddr, netSubCMD)
-            return removeOnInvalid
-        end
-
-        -- subcommand parsing
-        if netSubCMD == "CMD" then
-            networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "CMD", serializeBasic(supportedCMD))
-            return true
-        elseif netSubCMD == "MOD" then
-            networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "MOD", "BASIC", string.byte(seperator))
-            return true
-        elseif netSubCMD == "VER" then
-            networking.send(sendAddr, port, "hrf3-net", "GEN_DAT", "VER", table.unpack(protocolVer))
-        end
-
-    elseif netCMD == "LOG_REQ" then
-        if dataSize < 4 then
-            transmitInvalidParamPacket(sendAddr, 4)
-            return removeOnInvalid
-        end
-
-        local logType, netSubCMD = table.unpack(evtDat, 8, 9)
-        if type(logType) ~= "string" or not validateList(supportedBufType, logType) then
-            transmitInvalidBufPacket(sendAddr, logType)
-            return removeOnInvalid
-        elseif type(netSubCMD) ~= "string" or not validateList(supportedLRQ, netSubCMD) then
-            transmitInvalidSubCMDPacket(sendAddr, netSubCMD)
-            return removeOnInvalid
-        end
-
-        -- subcommand parsing
-        if netSubCMD == "LEN" then
-            networking.send(sendAddr, port, "hrf3-net", "LOG_DAT", logType, "LEN", #_G[getBufferNFromType(logType)])
-            return true
-
-        elseif netSubCMD == "LOG" then
-            if dataSize < 6 then
-                transmitInvalidParamPacket(sendAddr, 6)
-                return removeOnInvalid
-            end
-
-            local fline, lline = table.unpack(evtDat, 10, 11)
-            if type(fline) ~= "number" or type(lline) ~= "number" then
-                transmitInvalidPacket(sendAddr, "INV_PRM", "Expected first line and last line paramater to be a number!")
-                return removeOnInvalid
-            end
-
-            -- secondary check to prevent error
-            local bufDat = getBufferNFromType(logType)
-            if not bufDat then
-                transmitInvalidBufPacket(sendAddr, bufDat)
-                return removeOnInvalid
-            end
-            transmitLogs(sendAddr, bufDat, fline, lline)
-            return true
-        end
-
-    elseif netCMD == "PNG" then
-        networking.send(sendAddr, port, "hrf3-net", "ACK")
-        computer.beep(".")
-
-        return true
-    end
-end
-]]--
-
-local function doParamCheck(setLen, addr, checkLen)
+local function doLenCheck(setLen, addr, checkLen)
     if checkLen < setLen then
         transmitInvalidPacket(addr, "INV_LEN", "Expected at least " .. tostring(setLen) .. " paramaters(s), got " .. tostring(checkLen) .. "!")
         return false
@@ -216,14 +126,22 @@ local function doParamCheck(setLen, addr, checkLen)
     return true
 end
 
-local function parsePacket(eventTbl)
-    -- Basic length check; since the first 5 is modem event data and the other 2 is the magic and command
-    if #eventTbl < 7 then
+local function doAccessCheck(sender)
+    if addrContext[sender] == nil or addrContext[sender]["user"] == nil then
+        transmitInvalidPacket(sender, "ACC_DENIED", "Invalid credentials, Access is denied.")
         return false
     end
 
-    -- sender address
-    local sender = eventTbl[2]
+    return true
+end
+
+-- TODO: Fix whatever tf broke the server i'm tired
+
+local function parsePacket(eventTbl)
+    -- Basic length check; since the first 5 is modem event data and the other 3 is the magic, sender address and command
+    if #eventTbl < 8 then
+        return false
+    end
 
     -- finally, only packet-related data
     local pktData = table.pack(table.unpack(eventTbl, 6, #eventTbl))
@@ -232,29 +150,34 @@ local function parsePacket(eventTbl)
     if pktData[1] ~= "hrf3-net" then
         return false
     end
-    if not utils.inList(supportedCMD, pktData[2]) then
+
+    -- sender address
+    -- we use the ones located inside the main packet, since the sender address changes if packet goes through a relay
+    local sender = pktData[2]
+
+    if not utils.inList(supportedCMD, pktData[3]) then
         transmitInvalidPacket(sender, "INV_CMD")
         return removeOnInvalid
     end
 
     -- The actual command parser
-    local command = pktData[2]
+    local command = pktData[3]
     if command == "PNG" then
         transmitAckPacket(sender)
         computer.beep('.')
         return true
 
     elseif command == "GEN_REQ" then
-        if #pktData < 3 then
+        if #pktData < 4 then
             transmitInvalidPacket(sender, "INV_LEN", "Expected at least 1 paramater(s), got None!")
             return removeOnInvalid
-        elseif not utils.inList(supportedGRQ, pktData[3]) then
-            transmitInvalidPacket(sender, "INV_SUB_CMD", "Subcommand '" .. pktData[3] .. "' not supported/valid!")
+        elseif not utils.inList(supportedGRQ, pktData[4]) then
+            transmitInvalidPacket(sender, "INV_SUB_CMD", "Subcommand '" .. pktData[4] .. "' not supported/valid!")
             return removeOnInvalid
         end
 
         -- Subcommand parser for General Requests
-        local subcommand = pktData[3]
+        local subcommand = pktData[4]
         if subcommand == "VER" then
             transmitGenDataPacket(sender, table.unpack(protocolVer))
             return true
@@ -270,7 +193,7 @@ local function parsePacket(eventTbl)
         end
 
     elseif command == "SYS_REQ" then
-        if not doParamCheck(3, sender, #pktData) then
+        if not doLenCheck(4, sender, #pktData) then
             return removeOnInvalid
         elseif not utils.inList(supportedGRQ, pktData[3]) then
             transmitInvalidPacket(sender, "INV_SUB_CMD", "Subcommand '" .. pktData[3] .. "' not supported/valid!")
@@ -278,7 +201,7 @@ local function parsePacket(eventTbl)
         end
 
         -- Subcommand parser for System Requests
-        local subcommand = pktData[3]
+        local subcommand = pktData[4]
         if subcommand == "CMDS" then
             transmitSysDataPacket(sender, serialization.serializeMonOS(supportedSRQ))
             return true
@@ -289,19 +212,19 @@ local function parsePacket(eventTbl)
 
         elseif subcommand == "LOGIN" then
             -- Length check
-            if not doParamCheck(5, sender, #pktData) then
+            if not doLenCheck(6, sender, #pktData) then
                 return removeOnInvalid
             end
 
             -- User and passwd check
-            local user = tostring(pktData[4])
+            local user = tostring(pktData[5])
             if users[user] == nil then
                 transmitInvalidPacket(sender, "INV_LOGIN", "Invalid login, please try again")
                 return removeOnInvalid
 
             end
 
-            local passwd = pktData[5]
+            local passwd = pktData[6]
             if passwd ~= users[user] then
                 transmitInvalidPacket(sender, "INV_LOGIN", "Invalid login, please try again")
                 return removeOnInvalid
@@ -317,7 +240,7 @@ local function parsePacket(eventTbl)
 
         elseif subcommand == "LOGOUT" then
             -- Credential check
-            if addrContext[sender] == nil then
+            if addrContext[sender] == nil or addrContext[sender]["user"] == nil then
                 transmitInvalidPacket(sender, "INV_LOGIN", "Not logged in.")
                 return removeOnInvalid
 
@@ -330,26 +253,24 @@ local function parsePacket(eventTbl)
 
         elseif subcommand == "LIST" then
             -- Length check
-            if not doParamCheck(4, sender, #pktData) then
+            if not doLenCheck(5, sender, #pktData) then
                 return removeOnInvalid
             end
 
             -- Paramater check
-            if type(pktData[4]) ~= "string" then
+            if type(pktData[5]) ~= "string" then
                 transmitInvalidPacket(sender, "INV_PRM", "Invalid paramater!")
                 return removeOnInvalid
 
             end
 
             -- Access check
-            if addrContext[sender] == nil then
-                transmitInvalidPacket(sender, "ACC_DENIED", "Invalid credentials, access is denied.")
+            if doAccessCheck(sender) then
                 return removeOnInvalid
-
             end
 
             -- Path check
-            if not component.invoke(BOOTADDR, "exists", pktData[4]) or not component.invoke(BOOTADDR, "list", pktData[4]) then
+            if not component.invoke(BOOTADDR, "exists", pktData[5]) or not component.invoke(BOOTADDR, "list", pktData[5]) then
                 transmitInvalidPacket(sender, "INV_PATH", "Invalid PATH '" .. pktData[4] .. "'!")
                 return removeOnInvalid
 
@@ -360,38 +281,36 @@ local function parsePacket(eventTbl)
 
         elseif subcommand == "READ" then
             -- Length check
-            if not doParamCheck(4, sender, #pktData) then
+            if not doLenCheck(4, sender, #pktData) then
                 return removeOnInvalid
             end
 
             -- Paramater check
-            if type(pktData[4]) ~= "string" then
+            if type(pktData[5]) ~= "string" then
                 transmitInvalidPacket(sender, "INV_PRM", "Invalid paramater!")
                 return removeOnInvalid
 
             end
 
             -- Access check
-            if addrContext[sender] == nil then
-                transmitInvalidPacket(sender, "ACC_DENIED", "Invalid credentials, access is denied.")
+            if doAccessCheck(sender) then
                 return removeOnInvalid
-
             end
 
             -- File check
-            if not component.invoke(BOOTADDR, "exists", pktData[4]) or component.invoke(BOOTADDR, "list", pktData[4]) then
-                transmitInvalidPacket(sender, "INV_PATH", "Invalid PATH '" .. pktData[4] .. "'!")
+            if not component.invoke(BOOTADDR, "exists", pktData[5]) or component.invoke(BOOTADDR, "list", pktData[5]) then
+                transmitInvalidPacket(sender, "INV_PATH", "Invalid PATH '" .. pktData[5] .. "'!")
                 return removeOnInvalid
 
             end
 
             -- Start TCP mode
             local header = utils.deepcopy(tcpInfo)
-            header["PACKETAMT"] = math.ceil(component.invoke(BOOTADDR, "size", pktData[4]) / fragSize)
+            header["PACKETAMT"] = math.ceil(component.invoke(BOOTADDR, "size", pktData[5]) / fragSize)
             transmitTCPStartPacket(sender, header)
 
             addrContext[sender]["TCP_context"] = {
-                ["code"] = {"system", "read", pktData[4], 0},
+                ["code"] = {"system", "read", pktData[5], 0},
                 ["timestamp"] = computer.uptime(),
                 ["amt_resent"] = 0,
                 ["packet_amt"] = header["PACKETAMT"],
@@ -402,27 +321,25 @@ local function parsePacket(eventTbl)
 
         elseif subcommand == "WRITE" then
             -- Length check
-            if not doParamCheck(4, sender, #pktData) then
+            if not doLenCheck(5, sender, #pktData) then
                 return removeOnInvalid
             end
 
             -- Paramater check
-            if type(pktData[4]) ~= "string" then
+            if type(pktData[5]) ~= "string" then
                 transmitInvalidPacket(sender, "INV_PRM", "Invalid paramater!")
                 return removeOnInvalid
 
             end
 
             -- Access check
-            if addrContext[sender] == nil then
-                transmitInvalidPacket(sender, "ACC_DENIED", "Invalid credentials, access is denied.")
+            if doAccessCheck(sender) then
                 return removeOnInvalid
-
             end
 
             -- File (well, folder) check & non-folder check
-            if not component.invoke(BOOTADDR, "exists", utils.getParentPath(pktData[4])) or component.invoke(BOOTADDR, "list", pktData[4]) then
-                transmitInvalidPacket(sender, "INV_PATH", "Invalid PATH '" .. pktData[4] .. "'!")
+            if not component.invoke(BOOTADDR, "exists", utils.getParentPath(pktData[5])) or component.invoke(BOOTADDR, "list", pktData[5]) then
+                transmitInvalidPacket(sender, "INV_PATH", "Invalid PATH '" .. pktData[5] .. "'!")
                 return removeOnInvalid
 
             end
@@ -433,11 +350,23 @@ local function parsePacket(eventTbl)
             -- Instead of storing data in here, append recieved data to file <filename>.tmp, before deleting the original file and
             -- renaming the new file, if the original file exists
             addrContext[sender]["TCP_context"] = {
-                ["code"] = {"system", "write", pktData[4], 0},
+                ["code"] = {"system", "write", pktData[5], 0},
                 ["is_client"] = true
             }
 
         end
+
+    elseif command == "ACK" then
+        -- Check if sender has a valid tcp context and stuff
+        if addrContext[sender] == nil or addrContext[sender]["TCP_context"] == nil then
+            -- Sir, who tf are you???
+            -- Either way, we don't return a decline, as maybe someone with extra braincells would put ACK after every normal-mode operation.
+            -- I don't, just resend the dang command if timeout occurs.
+            return true
+        end
+
+        local tCont = addrContext[sender]["TCP_context"]
+        
 
     end
     -- TODO: TCP Mode support

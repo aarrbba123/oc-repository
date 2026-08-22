@@ -2,8 +2,8 @@
 --- Use in case the online hrf3-net protocol is unusable
 
 local OFFLINE_DEBUG_MODE = true
-local OFFLINE_DEBUG_INTERVAL = 100
-local OFFLINE_DEBUG_TICK = 0
+local OFFLINE_DEBUG_INTERVAL = 5
+local OFFLINE_DEBUG_TIME = 0
 
 local invoke = component.invoke
 local print = iolib.print
@@ -11,11 +11,9 @@ local outFS = computer.getBootAddress()
 
 if OFFLINE_DEBUG_MODE then
     local function logDumper()
-        if OFFLINE_DEBUG_TICK >= OFFLINE_DEBUG_INTERVAL then
-            OFFLINE_DEBUG_TICK = 0
+        if computer.uptime() - OFFLINE_DEBUG_TIME >= OFFLINE_DEBUG_INTERVAL then
+            OFFLINE_DEBUG_TIME = computer.uptime()
             logger.dump()
-        else
-            OFFLINE_DEBUG_TICK = OFFLINE_DEBUG_TICK + 1
         end
 
     end

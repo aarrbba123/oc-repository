@@ -1,14 +1,14 @@
 _G.driver = {}
 
-local componentList = {"gpu", "modem", "redstone", "screen"}
+local componentList = {"gpu", "modem", "redstone", "screen", "ocelot"}
 
 function driver.updateComponentBinds()
     for _, comp in ipairs(componentList) do
         local primaryComponent = component.list(comp)()
         if primaryComponent ~= nil then
-            component.setPrimary(comp, primaryComponent)
+            component[comp] = component.proxy(primaryComponent)
         else
-            component.setPrimary(comp, nil)
+            component[comp] = nil
         end
     end
 

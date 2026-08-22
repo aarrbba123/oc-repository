@@ -1,4 +1,7 @@
 ---@meta
+--- This contains definitions for OpenComputers, more specifically,
+--- the bare-metal version.
+--- Unfortunately, since the original definition files were deleted, we are forced to make our own
 
 ---@class component
 component = {}
@@ -81,8 +84,18 @@ end
 function computer.freeMemory()
 end
 
+---Gets total memory in the computer
+---@return number amount Amount of total memory installed in the computer, in bytes.
+function computer.totalMemory()
+end
+
 ---Gets the time, in real world seconds, the computer has been running, based on world time
 ---This means that it will only tick if the world is running (not paused, for example).
 ---@return number time Time passed since startup, in seconds.
 function computer.uptime()
+end
+
+---Gets information of each component, with the key as its address
+---@return table components A list of components
+function computer.getDeviceInfo()
 end

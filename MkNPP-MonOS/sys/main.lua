@@ -1,6 +1,5 @@
 SYS_MODE = 0
 DBG_ENABLED = 0
-PASSWD = "kNPP_P@ss123"
 
 --- High Memory Pressure threshold. Crashes the system
 local HMEM_PRESSURE = 0.9

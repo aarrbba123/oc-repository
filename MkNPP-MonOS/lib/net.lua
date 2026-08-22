@@ -3,22 +3,20 @@
 _G.networking = {}
 _G.networking.transmitBuffer = {}
 
-local invoke = component.invoke
-
 function networking.getMaxSendSize()
-    return computer.getDeviceInfo("modem")[component.modem]["capacity"]
+    return computer.getDeviceInfo()[component.modem.address]["capacity"]
 end
 
 function networking.isOpen(port)
-    return invoke(component.modem, "isOpen", port)
+    return component.modem.isOpen(port)
 end
 
 function networking.open(port)
-    return invoke(component.modem, "open", port)
+    return component.modem.open(port)
 end
 
 function networking.close(port)
-    return invoke(component.modem, "close", port)
+    return component.modem.close(port)
 end
 
 function networking.send(netAddr, port, ...)
@@ -29,11 +27,11 @@ end
 function networking.processTransmitBuffer()
     local newBuffer = {}
     for _, packetData in ipairs(networking.transmitBuffer) do
-        local sent = invoke(component.modem, "send", table.unpack(packetData))
+        local sent = component.modem.send(table.unpack(packetData))
         if not sent then
             table.insert(newBuffer, packetData)
         end
     end
-    
+
     _G.networking.transmitBuffer = newBuffer
 end

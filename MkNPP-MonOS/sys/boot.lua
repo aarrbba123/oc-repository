@@ -1,16 +1,15 @@
 --- Main boot script
 
 local invoke = component.invoke
-local rootAddr = computer.getBootAddress()
 
 -- Init helper reader/writer functions
 
 function _G.loadfile(path, mode, env)
-    local fd = invoke(rootAddr, "open", path)
+    local fd = invoke(BOOTADDR, "open", path)
     local buf = ""
 
     repeat
-        local dt = invoke(rootAddr, "read", fd, math.maxinteger or math.huge)
+        local dt = invoke(BOOTADDR, "read", fd, math.maxinteger or math.huge)
         buf = buf .. (dt or "")
     until not dt
 
@@ -18,7 +17,7 @@ function _G.loadfile(path, mode, env)
 end
 
 function _G.listdir(path)
-    return invoke(rootAddr, "list", path)
+    return invoke(BOOTADDR, "list", path)
 end
 
 -- Global data/buffers
@@ -44,7 +43,11 @@ driver.updateComponentBinds()
 -- Library files
 local libFiles = listdir("/lib")
 for _, libName in ipairs(libFiles) do
-    loadfile("/lib/" .. libName, "bt", _G)()
+    -- Ignore directories, because no.
+    -- In the future, we only load all libraries in the preload, then use require to lazy load.
+    if invoke(BOOTADDR, "list", "/lib/" .. libName) == nil then
+        loadfile("/lib/" .. libName, "bt", _G)()
+    end
 end
 
 -- Global functions
