@@ -86,14 +86,29 @@ end
 
 --- Packet sending code
 
+---Send an Acknowledge packet
+---@param modem table The modem proxy/primary
+---@param sendAddr string Address to send to
+---@return boolean status `true` if successfully sent
 hf3nt.sendAck = function(modem, sendAddr)
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "ACK")
 end
 
+---Send a General Request packet
+---@param modem table The modem proxy/primary
+---@param sendAddr string Address to send to
+---@param code string General request code to send
+---@return boolean status `true` if successfully sent
 hf3nt.sendGenReq = function(modem, sendAddr, code)
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "GEN_REQ", code)
 end
 
+---Send a General Request packet
+---@param modem table The modem proxy/primary
+---@param sendAddr string Address to send to
+---@param code string System request code to send
+---@param ... any Additional paramaters to send
+---@return boolean status `true` if successfully sent
 hf3nt.sendSysReq = function(modem, sendAddr, code, ...)
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "SYS_REQ", code, ...)
 end
@@ -105,3 +120,9 @@ hf3nt.sendTCPStart = function(modem, sendAddr, byteSize)
     hdr["PACKETAMT"] = math.ceil(byteSize / cpr.getDeviceInfo()[modem.address]["capacity"])
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "TCP_ST", ser.serializeMonOS(hdr))
 end
+
+hf3nt.sendTCPData = function(modem, sendAddr, pktID, data)
+    return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "TCP_DAT", pktID, ser.serializeMonOS(data))
+end
+
+return hf3nt

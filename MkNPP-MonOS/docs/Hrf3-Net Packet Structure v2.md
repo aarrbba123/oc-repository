@@ -115,6 +115,8 @@ No additional request data.
 Logs the system (sender) in.
 Requires a valid password and username.
 Used as access control to prevent unauthorized access.
+Sends an `ACK` packet, if successful.
+
 !!! NOTE: USING THE SUBCOMMANDS BELOW THIS NEEDS ACCESS
 
 1. username
@@ -150,7 +152,18 @@ Mostly used for anything related to data (that is small)
 1. Request Code
 2. Data (Serialized)
 
-#### Request Code
+#### Request Code + Data info
+
+##### `CMDS`
+
+The data will be a list of commands (`SYS_REQ` codes)
+
+##### `INFO`
+
+The data will be based on an OS basis, but normally:
+
+- `platform` = OS identifier, used to know what OS this is from
+- `version` = A table containing the 3 version numbers, which is `major`, `minor` and `patch`. Used to know what version is the OS.
 
 ## PayloadID String (TCP Mode-Specific Commands)
 
@@ -168,9 +181,9 @@ Initiates `TCP Mode`, contains the data needed to know what to do here
 
 The header uses string key-pairs
 
-- `TIMEOUT`    = How long until the system re-sends the previous packet, in seconds.
-- `TOLERANCE`  = How many timed out packets will be sent before the system forcefully disconnects and stops `TCP Mode`
-- `PACKETAMT` = How many packets will be sent to the system. 
+- `TIMEOUT`    = How long until the system re-sends the previous packet, in seconds. (Default: 5)
+- `TOLERANCE`  = How many timed out packets will be sent before the system forcefully disconnects and stops `TCP Mode`. (Default: 3)
+- `PACKETAMT` = How many packets will be sent to the system. Used for fixed-size data, and is for readability. (Default: nil)
 
 ### TCP_DAT (TCP Data)
 

@@ -20,7 +20,22 @@ If this is defined, it means `TCP Mode` is on.
 #### code
 A list (table) containing context data for the server to know what operations is currently being done
 
-### prev_packet (SERVER-MODE EXCLUSIVE)
+#### timestamp
+Time that the previous packet was sent. gets reset when the threshold for timeout is reached or the packet is `ACK`'d
+
+#### amt_resent
+Number of packets that were resent. gets reset once the packet is `ACK`'d
+
+#### is_client
+A boolean that determines if for this context, the server is the TCP client.
+
+#### tolerance
+How many packets this context can resend before a `TCP_DSC`
+
+#### timeout
+How many seconds until the server have to resend the packet (if it is the TCP server)
+
+#### prev_packet (SERVER-MODE EXCLUSIVE)
 A table containing:
 - Packet ID
 - Previous data

@@ -17,7 +17,8 @@ local sysInfo = {
         ["major"] = 1,
         ["minor"] = 4,
         ["patch"] = 0
-    }
+    },
+    ["platform"] = "monos"
 }
 
 --- How large should the data be before it gets fragmented into multiple packets
@@ -102,9 +103,9 @@ end
 ---Transmits a TCP Data Packet
 ---@param senderAddr string Sender's address to send to
 ---@param packetID number The ID of the packet
----@param data string The data, serialized.
+---@param data table The data
 local function transmitTCPDataPacket(senderAddr, packetID, data)
-    networking.send(senderAddr, port, "hrf3-net", senderAddr, "TCP_DAT", packetID, data)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "TCP_DAT", packetID, serialization.serializeMonOS(data))
 end
 
 ---Transmits a TCP Start Packet
@@ -133,6 +134,11 @@ local function doAccessCheck(sender)
     end
 
     return true
+end
+
+local function updateTCPContext(contextData)
+    contextData["timestamp"] = computer.uptime()
+    contextData["amt_resent"] = 0
 end
 
 -- TODO: Fix whatever tf broke the server i'm tired
@@ -314,7 +320,9 @@ local function parsePacket(eventTbl)
                 ["timestamp"] = computer.uptime(),
                 ["amt_resent"] = 0,
                 ["packet_amt"] = header["PACKETAMT"],
-                ["is_client"] = false
+                ["is_client"] = false,
+                ["tolerance"] = tcpInfo["TOLERANCE"],
+                ["timeout"] = tcpInfo["TIMEOUT"]
             }
 
             return true
@@ -349,10 +357,18 @@ local function parsePacket(eventTbl)
 
             -- Instead of storing data in here, append recieved data to file <filename>.tmp, before deleting the original file and
             -- renaming the new file, if the original file exists
+            -- Yes, we need to store timestamp and amt resent, to automatically kis.
+            -- By default, timeout is twice to account for lag.
             addrContext[sender]["TCP_context"] = {
-                ["code"] = {"system", "write", pktData[5], 0},
-                ["is_client"] = true
+                ["code"] = {"system", "write", pktData[5]},
+                ["is_client"] = true,
+                ["timestamp"] = computer.uptime(),
+                ["amt_resent"] = 0,
+                ["tolerance"] = tcpInfo["TOLERANCE"],
+                ["timeout"] = tcpInfo["TIMEOUT"] * 2
             }
+
+            return true
 
         end
 
@@ -366,10 +382,155 @@ local function parsePacket(eventTbl)
         end
 
         local tCont = addrContext[sender]["TCP_context"]
-        
+        local code = tCont["code"]
+        local id, subid = table.unpack(code, 1, 2)
+        -- Code check
+        if id == "system" then
+            -- Realistically, only read does this, if they send ACK with a write context, then someting wong
+            if subid == "read" then
+                -- Send the next packet
+                -- Unlike write, we need to know the offset for the file (it's stored in-context)
+                local fpath = code[3]
+                local offset = code[4]
+
+                local fd = component.invoke(BOOTADDR, "open", fpath, "r")
+                component.invoke(BOOTADDR, "seek", fd, "set", offset)
+                local data = component.invoke(BOOTADDR, "read", fd, fragSize)
+                component.invoke(BOOTADDR, "close", fd)
+
+                if data ~= nil then
+                    -- Update context (dw, pointers exists) & transmit the next packet
+
+                    -- Nu id (or reuse the old one idc)
+                    local pktId = 1
+                    if tCont["prev_packet"] ~= nil then
+                        pktId = tCont["prev_packet"][0] + 1
+                    end
+
+                    local packet = {pktId, {data}}
+                    tCont["prev_packet"] = packet
+                    updateTCPContext(tCont)
+                    transmitTCPDataPacket(sender, pktId, {data})
+                else
+                    -- Terminate connection. I'm sorry, Elizabeth-
+                    addrContext[sender]["TCP_context"] = nil
+                    transmitTCPDisconnectPacket(sender, "SUCCESS")
+                end
+                return true
+            else
+                transmitInvalidPacket(sender, "OTHER", "Malformed TCP packet -- expecting `TCP_DAT`!!!")
+                return removeOnInvalid
+            end
+        end
+
+    elseif command == "TCP_DAT" then
+        if addrContext[sender] == nil or addrContext[sender]["TCP_context"] == nil then
+            -- Why are YOU sending data to US????
+            -- You using modem.broadcast or smth!? -- The server, probably.
+            transmitInvalidPacket(sender, "OTHER", "Attepted to send a `TCP_DAT` packet without establishing a TCP connection!")
+            return removeOnInvalid
+        end
+
+        if not doLenCheck(5, sender, #pktData) then
+            return removeOnInvalid
+        end
+
+        local tCont = addrContext[sender]["TCP_context"]
+        local code = tCont["code"]
+        local id, subid = table.unpack(code, 1, 2)
+        -- Code check, but write
+        if id == "system" then
+            -- Realistically, only write does this, if they send TCP_DAT with a read context, then someting wong
+            if subid == "write" then
+                -- Store in temp file, once on successful DC, remove original file and replace w/ temp file
+                local fPath = code[3] .. ".tmp"
+                local fd = component.invoke(BOOTADDR, "open", fPath, "a")
+                component.invoke(BOOTADDR, "write", fd, serialization.deserializeMonOS(pktData[4])[0])
+                component.invoke(BOOTADDR, "close", fd)
+
+                -- Update timestamp & reset counter
+                updateTCPContext(tCont)
+                transmitAckPacket(sender)
+                return true
+            else
+                transmitInvalidPacket(sender, "OTHER", "Malformed TCP packet -- expecting `ACK`!!!")
+                return removeOnInvalid
+            end
+        end
+
+    elseif command == "TCP_DSC" then
+        if addrContext[sender] == nil or addrContext[sender]["TCP_context"] == nil then
+            -- y'know that one post where they fire you but you already quit YEARS ago?
+            -- This is probably what it feels like
+            transmitInvalidPacket(sender, "OTHER", "No TCP connection exists!")
+            return removeOnInvalid
+        end
+
+        if not doLenCheck(4, sender, #pktData) then
+            return removeOnInvalid
+        end
+
+        local tCont = addrContext[sender]["TCP_context"]
+        local code = tCont["code"]
+        local id, subid = table.unpack(code, 1, 2)
+        -- Code check, but write
+        if id == "system" then
+            if subid == "write" then
+                -- Only write would have issues from disconnection
+                -- Only SUCCESS should commit, otherwise discard.
+                local fPath = code[3]
+                local reason = pktData[4]
+                if reason == "SUCCESS" then
+                    if component.invoke(BOOTADDR, "exists", fPath) then
+                        component.invoke(BOOTADDR, "remove", fPath)
+                    end
+
+                    component.invoke(BOOTADDR, "rename", fPath .. ".tmp", fPath)
+                else
+                    component.invoke(BOOTADDR, "remove", fPath .. ".tmp")
+                end
+
+                addrContext[sender]["TCP_context"] = nil
+
+            else
+                -- Otherwise, we can just drop the context w/ no issues
+                addrContext[sender]["TCP_context"] = nil
+            end
+
+        end
+
+        return true
+
+    elseif command == "TCP_ST" then
+        if addrContext[sender] == nil or addrContext[sender]["TCP_context"] == nil then
+            -- cool, but who are you???
+            transmitInvalidPacket(sender, "OTHER", "No TCP context exists!")
+            return removeOnInvalid
+        end
+
+        if not doLenCheck(4, sender, #pktData) then
+            return removeOnInvalid
+        end
+
+        local tCont = addrContext[sender]["TCP_context"]
+        local code = tCont["code"]
+        local id, subid = table.unpack(code, 1, 2)
+
+        -- Copy the information
+        if tCont["is_client"] == true then
+            local header = serialization.deserializeMonOS(pktData[4])
+            tCont["timeout"] = header["TIMEOUT"] or tcpInfo["TIMEOUT"]
+            tCont["tolerance"] = header["TOLERANCE"] or tcpInfo["TOLERANCE"]
+
+            if #header == 0 then
+                iolib.print("[HrfNetServer] WARN: Empty header in a TCP start packet, check serialization!")
+            end
+
+        end
+
+        return true
 
     end
-    -- TODO: TCP Mode support
 
 end
 
@@ -379,20 +540,28 @@ local function handleTimeout()
             local context = val["TCP_context"]
 
             local diffTime = computer.uptime() - context["timestamp"]
-            if diffTime >= tcpInfo["TIMEOUT"] then
-                if context["amt_resent"] < tcpInfo["TOLERANCE"] then
-                    if context["prev_packet"] ~= nil then
-                        transmitTCPDataPacket(sender, table.unpack(context["prev_packet"]))
-                    else
-                        local header = utils.deepcopy(tcpInfo)
-                        header["PACKETAMT"] = context["packet_amt"]
-                        transmitTCPStartPacket(sender, header)
+            if diffTime >= context["timeout"] then
+                -- Server and client are similar in timeout handling
+                -- Server re-sends packets and counts numbers up, while client only counts the numbers up
+                if context["amt_resent"] < context["tolerance"] then
+                    if context["is_client"] ~= true then
+                        if context["prev_packet"] ~= nil then
+                            transmitTCPDataPacket(sender, table.unpack(context["prev_packet"]))
+                        else
+                            local header = utils.deepcopy(tcpInfo)
+                            header["PACKETAMT"] = context["packet_amt"]
+                            transmitTCPStartPacket(sender, header)
+                        end
                     end
 
-                   context["packet_amt"] = context["packet_amt"] + 1
+                    context["amt_resent"] = context["amt_resent"] + 1
+
                 else
+                    -- We only transmit a DC as a server.
+                    if context["is_client"] ~= true then
+                        transmitTCPDisconnectPacket(sender, "TIMEOUT")
+                    end
                     -- drop connection
-                    transmitTCPDisconnectPacket(sender, "TIMEOUT")
                     val["TCP_context"] = nil
 
                 end

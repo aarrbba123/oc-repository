@@ -33,3 +33,8 @@ Currently, this is the format:
 
 Why in elements?
 - When you skip, instead of having to manually parse and calculate, we just currentPtr = currentPtr + length + 2 (if your currentPtr @ table length) or 1 (if your currentPtr @ data)
+
+## Caveats
+
+1. The serialization format, at this stage, is not capable of resolving recursive tables, leading to bad days (to the sender)
+2. The format uses a table as its root, meaning that you need to extract values, even if there's only one value to send.

@@ -1,4 +1,5 @@
 -- basic network log reader
+-- NOTE: This is VERY old (from v1!)
 
 local argv = table.pack(...)
 
