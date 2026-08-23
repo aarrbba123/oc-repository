@@ -81,7 +81,7 @@ local function _TableToMonOS(tbl)
                 local tblLen
                 serVal, tblLen = _TableToMonOS(val)
                 -- don't forget about the key
-                serVal = _sepOnNZero(entryLen - 2) .. tostring(key) .. '\0' .. serVal
+                serVal = _sepOnNZero(entryLen - 2) .. tostring(key) .. '\0' .. tostring(tblLen) .. '\0' .. serVal
 
                 entryLen = entryLen + tblLen
 
