@@ -1,8 +1,12 @@
 --- An extremely simple script used for the lab's power network
 --- By default, we're using the PC's internal energy to command.
 
-local threshold = 0.2
+local discThreshold = 0.2
+local chrgThreshold = 0.9
+
 local triggerSide = "back"
+
+local chargeMode = false
 
 local rstAddr = component.list("redstone")()
 assert(rstAddr ~= nil, "Redstone card not installed!")
@@ -36,10 +40,16 @@ computer.beep(".")
 
 while true do
     local percent = computer.energy() / computer.maxEnergy()
-    if percent <= threshold then
-        triggerIfUnchanged(15)
+    if chargeMode == true then
+        if percent >= chrgThreshold then
+            triggerIfUnchanged(0)
+            chargeMode = false
+        end
     else
-        triggerIfUnchanged(0)
+        if percent <= discThreshold then
+            triggerIfUnchanged(15)
+            chargeMode = true
+        end
     end
 
     dumpQueue()
