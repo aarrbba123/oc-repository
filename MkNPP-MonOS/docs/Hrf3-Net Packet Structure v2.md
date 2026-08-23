@@ -1,7 +1,7 @@
 # Hrf3-Net v2 Packet Structure
 
 This version uses the new "advanced" deserialization system made for MonOS, and provides new features
-For compatibilty purposes, ~~~some features of Hrf3-Net from v1 is available~~~ Yea, after commit `3c42978`, `Sender Address` is now required, breaking compatibility with older devices.
+For compatibilty purposes, ~~some features of Hrf3-Net from v1 is available~~ Yea, after commit `3c42978`, `Sender Address` is now required, breaking compatibility with older devices.
 
 ## Packet Structure
 
@@ -171,8 +171,8 @@ A list of files or directories
 
 ## PayloadID String (TCP Mode-Specific Commands)
 
-Unlike the above (Which is called 'basic' mode), `TCP mode` is used to transmit extremely large chunks of data.
-As such, special packets are sent (context is stored address-wise)
+Unlike the above (Which is called `basic` mode), `TCP mode` is used to transmit extremely large chunks or continuous streams of data.  
+For these occasions, special packets are sent (context is stored address-wise).  
 The receiver MUST send an `ACK` or `DEC` within the specified `TIMEOUT`, or `TCP_DSC` will occur.
 
 ### TCP_ST (TCP Start)
@@ -183,11 +183,13 @@ Initiates `TCP Mode`, contains the data needed to know what to do here
 
 #### Header Data Breakdown
 
-The header uses string key-pairs
+The header uses string key-pairs.
+
+While not sending any values is valid, MonOS *will* log a warning, as that could be a sign of a broken serialization library.
 
 - `TIMEOUT`    = How long until the system re-sends the previous packet, in seconds. (Default: 5)
 - `TOLERANCE`  = How many timed out packets will be sent before the system forcefully disconnects and stops `TCP Mode`. (Default: 3)
-- `PACKETAMT` = How many packets will be sent to the system. Used for fixed-size data, and is for readability. (Default: nil)
+- `PACKETAMT`  = How many packets will be sent to the system. Used for fixed-size data, and is for readability. (Default: nil)
 
 ### TCP_DAT (TCP Data)
 
