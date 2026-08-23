@@ -1,7 +1,7 @@
 # Hrf3-Net v2 Packet Structure
 
 This version uses the new "advanced" deserialization system made for MonOS, and provides new features
-For compatibilty purposes, ~~~some features of Hrf3-Net from v1 is available~~~ Yea after commit `3c42978`, `Sender Address` is now required, breaking compatibility with older devices.
+For compatibilty purposes, ~~~some features of Hrf3-Net from v1 is available~~~ Yea, after commit `3c42978`, `Sender Address` is now required, breaking compatibility with older devices.
 
 ## Packet Structure
 
@@ -165,6 +165,10 @@ The data will be based on an OS basis, but normally:
 - `platform` = OS identifier, used to know what OS this is from
 - `version` = A table containing the 3 version numbers, which is `major`, `minor` and `patch`. Used to know what version is the OS.
 
+##### `LIST`
+
+A list of files or directories
+
 ## PayloadID String (TCP Mode-Specific Commands)
 
 Unlike the above (Which is called 'basic' mode), `TCP mode` is used to transmit extremely large chunks of data.
@@ -200,15 +204,15 @@ Stops `TCP Mode` and any data transmission.
 
 #### Reason Code
 
-##### SUCCESS
+##### `SUCCESS`
 
 Disconnect due to operation being a success.
 Typically indicate the end of a successful data transmission
 
-##### TIMEOUT
+##### `TIMEOUT`
 
 Disconnect due to timeout.
 
-##### CANCEL
+##### `CANCEL`
 
 Disconnect due to the operation being cancelled

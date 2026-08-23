@@ -8,7 +8,12 @@ local ser = require("monos-serialization")
 local cpr = require("computer")
 
 local function getEvent(timeout, name, ...)
-    return table.pack(table.unpack({evt.pull(timeout, name, ...)}, 2))
+    local ret = evt.pull(timeout, name, ...)
+    if ret ~= nil then
+        return table.pack(table.unpack({ret}, 2))
+    else
+        return nil
+    end
 end
 
 ---Copies the table, and the tables within.
@@ -64,7 +69,7 @@ end
 ---@param timeout number? how long to wait before timing out and returning `nil`
 ---@param multi boolean if `true`, gets a list of packets
 ---@param ... any Filters to apply
----@return table packetOrListOfPackets A packet, or a list of packets. `nil` or an empty table if no packets are found.
+---@return table? packetOrListOfPackets A packet, or a list of packets. `nil` or an empty table if no packets are found.
 hf3nt.recievePacket = function(timeout, multi, ...)
     if timeout == nil then
         timeout = 1
@@ -115,14 +120,38 @@ end
 
 --- TCP Related code ---
 
+---Send a TCP start packet
+---@param modem table The modem proxy
+---@param sendAddr string Address to send to
+---@param byteSize number? The size of the data, `nil` if unspecified/continuous stream of data
+---@return boolean status `true` if successfully sent
 hf3nt.sendTCPStart = function(modem, sendAddr, byteSize)
     local hdr = deepcopy(hf3nt.tcpHeader)
-    hdr["PACKETAMT"] = math.ceil(byteSize / cpr.getDeviceInfo()[modem.address]["capacity"])
+    if byteSize ~= nil then
+        hdr["PACKETAMT"] = math.ceil(byteSize / cpr.getDeviceInfo()[modem.address]["capacity"])
+    else
+        hdr["PACKETAMT"] = -1
+    end
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "TCP_ST", ser.serializeMonOS(hdr))
 end
 
+---Send a TCP data packet
+---@param modem table The modem proxy
+---@param sendAddr string Address to send to
+---@param pktID number Packet ID
+---@param data table A table of data, which will be serialized later.
+---@return boolean status `true` if successfully sent
 hf3nt.sendTCPData = function(modem, sendAddr, pktID, data)
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "TCP_DAT", pktID, ser.serializeMonOS(data))
+end
+
+---Send a TCP disconnect packet
+---@param modem table The modem proxy
+---@param sendAddr string Address to send to
+---@param code string The reason code for the disconnect
+---@return boolean status `true` if successfully sent
+hf3nt.sendTCPDisconnect = function(modem, sendAddr, code)
+    return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "TCP_DSC", code)
 end
 
 return hf3nt
