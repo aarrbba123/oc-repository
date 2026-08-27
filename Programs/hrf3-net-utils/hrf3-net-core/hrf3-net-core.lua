@@ -55,10 +55,10 @@ hf3nt.scan = function(modem, timeout)
 
     modem.broadcast(12930, "hrf3-net", modem.address, "PNG")
     local retBuf = {}
-    local data = getEvent(timeout, "modem_message", "hrf3-net", nil, "ACK")
+    local data = getEvent(timeout, "modem_message", nil, nil, nil, nil, "hrf3-net", nil, "ACK")
     while data ~= nil do
         table.insert(retBuf, data)
-        data = getEvent(timeout, "modem_message", "hrf3-net", nil, "ACK")
+        data = getEvent(timeout, "modem_message", nil, nil, nil, nil, "hrf3-net", nil, "ACK")
     end
 
     return retBuf
@@ -68,19 +68,19 @@ end
 ---get a packet or a list of packets
 ---@param timeout number? how long to wait before timing out and returning `nil`
 ---@param multi boolean if `true`, gets a list of packets
----@param ... any Filters to apply
+---@param ... any Filters to apply (to the packet data)
 ---@return table? packetOrListOfPackets A packet, or a list of packets. `nil` or an empty table if no packets are found.
 hf3nt.recievePacket = function(timeout, multi, ...)
     if timeout == nil then
         timeout = 1
     end
 
-    local retData = getEvent(timeout, "modem_message", ...)
+    local retData = getEvent(timeout, "modem_message", nil, nil, nil, nil, ...)
     if multi == true then
         local retBuf = {}
         while retData ~= nil do
             table.insert(retBuf, retData)
-            retData = getEvent(timeout, "modem_message", ...)
+            retData = getEvent(timeout, "modem_message", nil, nil, nil, nil, ...)
         end
 
         return retBuf
@@ -152,6 +152,40 @@ end
 ---@return boolean status `true` if successfully sent
 hf3nt.sendTCPDisconnect = function(modem, sendAddr, code)
     return modem.send(sendAddr, 12930, "hrf3-net", modem.address, "TCP_DSC", code)
+end
+
+--- Packet Checking Code ---
+
+---Basic valid v2 packet checker.
+---Checks if the table provided is a valid packet
+---@param packet table table to check
+---@return boolean `true` if valid, `false` otherwise
+hf3nt.isValidPacket = function(packet)
+    if #packet < 7 then
+        return false
+    end
+
+    -- Basic header check, with magic + 2 type checks (since param 2 and 3 are always strings)
+    if packet[5] ~= "hrf3-net" or type(packet[6]) ~= "string" or type(packet[7]) ~= "string" then
+        return false
+    end
+
+    return true
+end
+
+---Checks if the packet provided is a valid decline packet
+---@param packet table Packet to check
+---@return boolean `true` if valid, `false` otherwise
+hf3nt.isDeclinePacket = function(packet)
+    if not hf3nt.isValidPacket(packet) then
+        return false
+    end
+
+    if packet[7] ~= "DEC" then
+        return false
+    end
+
+    return true
 end
 
 return hf3nt

@@ -93,15 +93,15 @@ local function _TableToMonOS(tbl)
 
             if vType == "string" then
                 serVal = _sepOnNZero(entryLen - 2) .. tostring(key) .. '\0' .. _StrToMonOS(val)
-                entryLen = entryLen + 2
+                entryLen = entryLen + 3
 
             elseif vType == "number" then
                 serVal = _sepOnNZero(entryLen - 2) .. tostring(key) .. '\0' .. _NumToMonOS(val)
-                entryLen = entryLen + 2
+                entryLen = entryLen + 3
 
             elseif vType == "boolean" then
                 serVal = _sepOnNZero(entryLen - 2) .. tostring(key) .. '\0' ..  _BoolToMonOS(val)
-                entryLen = entryLen + 2
+                entryLen = entryLen + 3
 
             elseif vType == "table" then
                 local tblLen
@@ -109,7 +109,7 @@ local function _TableToMonOS(tbl)
                 -- don't forget about the key
                 serVal = _sepOnNZero(entryLen - 2) .. tostring(key) .. '\0' .. tostring(tblLen) .. '\0' .. serVal
 
-                entryLen = entryLen + tblLen
+                entryLen = entryLen + 1 + tblLen -- The two at the start only covers the type and length, the +1 is for the key
 
             end
 

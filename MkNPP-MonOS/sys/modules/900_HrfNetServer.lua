@@ -79,16 +79,18 @@ end
 
 ---Transmits a General Data packet
 ---@param senderAddr string Sender's address to send to
+---@param code string Code to re-send
 ---@param ... any Additional data
-local function transmitGenDataPacket(senderAddr, ...)
-    networking.send(senderAddr, port, "hrf3-net", senderAddr, "GEN_DAT", ...)
+local function transmitGenDataPacket(senderAddr, code, ...)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "GEN_DAT", code, ...)
 end
 
 ---Transmits a System Data packet
 ---@param senderAddr string Sender's address to send to
+---@param code string Code to re-send
 ---@param ... any Additional data
-local function transmitSysDataPacket(senderAddr, ...)
-    networking.send(senderAddr, port, "hrf3-net", senderAddr, "SYS_DAT", ...)
+local function transmitSysDataPacket(senderAddr, code, ...)
+    networking.send(senderAddr, port, "hrf3-net", senderAddr, "SYS_DAT", code, ...)
 end
 
 --- TCP MODE EXCLUSIVE PACKETS ---
@@ -185,15 +187,15 @@ local function parsePacket(eventTbl)
         -- Subcommand parser for General Requests
         local subcommand = pktData[4]
         if subcommand == "VER" then
-            transmitGenDataPacket(sender, table.unpack(protocolVer))
+            transmitGenDataPacket(sender, "VER", table.unpack(protocolVer))
             return true
 
         elseif subcommand == "MOD" then
-            transmitGenDataPacket(sender, "MONOS")
+            transmitGenDataPacket(sender, "MOD", "MONOS")
             return true
 
         elseif subcommand == "CMD" then
-            transmitGenDataPacket(sender, serialization.serializeMonOS(supportedCMD))
+            transmitGenDataPacket(sender, "CMD", serialization.serializeMonOS(supportedCMD))
             return true
 
         end
@@ -209,11 +211,11 @@ local function parsePacket(eventTbl)
         -- Subcommand parser for System Requests
         local subcommand = pktData[4]
         if subcommand == "CMDS" then
-            transmitSysDataPacket(sender, serialization.serializeMonOS(supportedSRQ))
+            transmitSysDataPacket(sender, "CMDS", serialization.serializeMonOS(supportedSRQ))
             return true
 
         elseif subcommand == "INFO" then
-            transmitSysDataPacket(sender, serialization.serializeMonOS(sysInfo))
+            transmitSysDataPacket(sender, "INFO", serialization.serializeMonOS(sysInfo))
             return true
 
         elseif subcommand == "LOGIN" then
@@ -282,7 +284,7 @@ local function parsePacket(eventTbl)
 
             end
 
-            transmitSysDataPacket(sender, serialization.serializeMonOS(component.invoke(BOOTADDR, "list")))
+            transmitSysDataPacket(sender, "LIST", serialization.serializeMonOS(component.invoke(BOOTADDR, "list")))
             return true
 
         elseif subcommand == "READ" then

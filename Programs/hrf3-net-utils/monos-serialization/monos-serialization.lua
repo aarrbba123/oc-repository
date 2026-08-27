@@ -3,7 +3,7 @@
 local serialization = {}
 
 serialization.serializationVersion = {
-    ["MonOS"] = 1
+    ["MonOS"] = 1 -- MonOS serialization version number
 }
 
 ---Local string.split function, because luan't

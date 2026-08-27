@@ -33,3 +33,7 @@ Otherwise, it will stay in the loop until a script, lib or program consumes the 
 1. Use mutiple filesytems
 2. Use any other filesystems (other than its own, of course)
 3. Render graphics (or even text, for that matter)
+
+## OS terms
+
+- kernel heartbeat = Per-kernel loop (after all modules are executed)

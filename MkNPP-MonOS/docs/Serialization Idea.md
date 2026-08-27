@@ -1,4 +1,4 @@
-# === MonOS Serialization V2 ===
+# MonOS Serialization V2
 
 Serialization & Deserialization in v1 uses null-terminated characters with data in-between.
 v2 improves on it by adding data descriptors (enabling multi-data support) and multi-depth table support

@@ -2,21 +2,9 @@
 
 local comp = require("component")
 local event = require("event")
-local os = require("os")
 
 local locallyManaged = false
 local modem = comp.modem
-local data = {}
-
-local function netGetter(name, recvAddr, sendAddr, port, distance, ...)
-    local pktData = table.pack(...)
-    if #pktData < 2 or pktData[1] ~= "hrf3-net" then
-        return
-    end
-
-    table.insert(data, {recvAddr, sendAddr, port, distance, ...})
-
-end
 
 -- Main code
 
@@ -25,11 +13,18 @@ if not modem.isOpen(12930) then
     locallyManaged = true
 end
 
-event.listen("modem_message", netGetter)
-
 print("Pinging...")
 modem.broadcast(12930, "hrf3-net", modem.address, "PNG")
-os.sleep(2)
+
+local data = {}
+repeat
+    local rawPkt = table.pack(event.pull(2, "modem_message", nil, nil, nil, nil, "hrf3-net", nil, "ACK"))
+    local str = rawPkt[1]
+    if str ~= nil then
+        local pkt = table.pack(table.unpack(rawPkt, 2))
+        table.insert(data, pkt)
+    end
+until str == nil
 
 if #data == 0 then
     print("No valid hrf3-net servers found!")
@@ -45,8 +40,6 @@ else
         end
     end
 end
-
-event.ignore("modem_message", netGetter)
 
 if locallyManaged then
     modem.close(12930)

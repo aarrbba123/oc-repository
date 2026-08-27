@@ -51,6 +51,38 @@ interactive.chooseAddr = function(modem, timeout)
     end
 
     local val = 1
+    local verPkt = {}
+    local serPkt = {}
+    local sysPkt = {}
+    for _, pkt in ipairs(res) do
+        -- Ask version, serialization mode, and os platform
+        local sendAddr = pkt[6]
+        net.sendGenReq(modem, sendAddr, "VER")
+        local verRes = net.recievePacket(timeout, false, "hrf3-net")
+        if verRes == nil or net.isDeclinePacket(verRes) then
+            -- error handling code
+        else
+            verPkt = verRes
+        end
+
+        net.sendGenReq(modem, sendAddr, "MOD")
+        local serRes = net.recievePacket(timeout, false, "hrf3-net")
+        if serRes == nil or net.isDeclinePacket(serRes) then
+            -- yea nvm it does nothing
+        else
+            serPkt = serRes
+        end
+
+        net.sendSysReq(modem, sendAddr, "INFO")
+        local sysRes = net.recievePacket(timeout, false, "hrf3-net")
+        if serRes == nil or net.isDeclinePacket(serRes) then
+            -- Mostly bc luadocs is gonna complain
+        else
+            serPkt = serRes
+        end
+    end
+
+    -- Print Address, Distance, Version, Serialization, OS
 
     return val, res
 
