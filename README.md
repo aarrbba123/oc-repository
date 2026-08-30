@@ -7,3 +7,5 @@ I just did.
 
 [^1] Well actually, the serialization protocol is just for updating the OS without doing the hassle of taking the floppy/hard disk from the computer, updating the code within, putting it back, yada yada.
 (Plus, the working location and the lab where these programs are written to are *extremely* far apart, and I'm **NOT** getting *shot down* by **CIWS** just to save time for ts 😭)
+
+* Misspelling intended 
