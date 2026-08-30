@@ -1,41 +1,18 @@
 --- A library that replaces the package library
 --- TODO: Finish this!
 
-package = {}
+_G.package = {}
 
+package.preload = {}
 package.loaded = {}
+package._loaded = {} -- Main loaded table, containing all the data
+package.persistence = {} -- Persistence table, for when a module decides to write a variable to the packages
 
 package.searchers = {}
 
--- The recursive searcher
-local function _libSearcher(fName, libDir)
-    if component.invoke(BOOTADDR, "exists", libDir .. "/" .. fName) then
-        local localEnv = {} -- TODO: The environment
-        loadfile(libDir .. "/" .. fName, "bt", localEnv)()
-        return localEnv
-    end
-
-    local fList = component.invoke(BOOTADDR, "list", libDir)
-    for _, name in ipairs(fList) do
-        -- Preload folder blacklist
-        if libDir .. "/" .. name .. "/" ~= "/lib/preload" then
-            -- Folder checker
-            if component.invoke(BOOTADDR, "list", name) ~= nil then
-                local dat = _libSearcher(fName, libDir .. "/" .. name)
-                if dat ~= nil then
-                    return dat
-                end
-            end
-        end
-    end
-
-    return nil
-end
-
-function package.searchers.libSearcher(modname)
-    local fName = modname .. ".lua"
-    return _libSearcher(fName, "/lib")
-end
+--- Preloaded libraries to be used for booting purposes
+--- Will be nil'd at runtime
+_G.preloaded = {}
 
 function _G.require(modname)
     if package.loaded[modname] ~= nil then

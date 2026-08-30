@@ -12,6 +12,7 @@ local ERR_THRESHOLD = 0
 local ERR_COUNT = 0
 
 --- Panick variable which forces a panic outside safety
+--- In a table, for some reason.
 local PANIC = nil
 
 local error = iolib.error

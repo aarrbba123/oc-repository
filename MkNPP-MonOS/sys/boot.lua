@@ -44,7 +44,7 @@ driver.updateComponentBinds()
 local libFiles = listdir("/lib")
 for _, libName in ipairs(libFiles) do
     -- Ignore directories, because no.
-    -- In the future, we only load all libraries in the preload, then use require to lazy load.
+    -- In the future, we only load all libraries in the preload and core loads, then use require to lazy load.
     if invoke(BOOTADDR, "list", "/lib/" .. libName) == nil then
         loadfile("/lib/" .. libName, "bt", _G)()
     end
