@@ -248,3 +248,12 @@ function serialization.deserializeMonOS(strData)
         return _MonOSToTable(table.pack(table.unpack(bufData, 3, #bufData)))
     end
 end
+
+---Gets the header table for the MonOS serialization format
+---@return table header Header table
+function serialization.getMonOSSerializationHeader()
+    local retData = {
+        ["version"] = serialization.serializationVersion["MonOS"]
+    }
+    return retData
+end

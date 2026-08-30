@@ -22,7 +22,7 @@ When a function or constant is accessed, the *proxy* will call the `__index()` m
 
 ### unloading a normal package
 
-If a `normal` package is not accessed for a *certain number of kernel heartbeats*, the table containing all the function data will be `nil`'d. The *proxy* will remain though, and is used to **reload** the unloaded package if a module gets data or executes a function.
+If a `normal` package is not accessed for a *certain number of kernel heartbeats*, the table containing all the function data will be `nil`'d. The *proxy* will remain though, and is used to **reload** the unloaded package if a module decides to get data or executes a function from the unloaded package.
 
 ### package persistence
 

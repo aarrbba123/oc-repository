@@ -8,10 +8,33 @@ v2 improves on it by adding data descriptors (enabling multi-data support) and m
 Currently, this is the format:  
 (NOTE: the `\0` is a NULL character)
 
+## Header
+
+Contains information about the current serialization version, format and any other extra related information.  
+Uses the earliest MonOS serialization version number (version **1**) to ensure the reciever can retrieve information *regardless of age*.
+
+### Deserialized
+{
+  ["version"] = 1
+}
+
+### Semi-serialized
+
+{'t', 3, "version", 'n', 1}
+
+### Serialized
+
+"t`\0`3`\0`version`\0`n`\0`1"
+
+### Header Info
+| "version" - Contains the serialization header's version number (Which increments for each breaking or significant change)
+
 ## Data
 
+Seperate from the header, contains the data portion
+
 ### Deserialized:
-{"data1", 21, {"kiki"}, "janiel" = "AKeyValue", [6] = 21}
+{"data1", 21, {"kiki"}, ["janiel"] = "AKeyValue", [6] = 21}
 
 ### Semi-serialized:
 <TODO: Use a serialization tool>

@@ -191,7 +191,7 @@ local function parsePacket(eventTbl)
             return true
 
         elseif subcommand == "MOD" then
-            transmitGenDataPacket(sender, "MOD", "MONOS")
+            transmitGenDataPacket(sender, "MOD", "MONOS", serialization.serializeMonOS(serialization.getMonOSSerializationHeader()))
             return true
 
         elseif subcommand == "CMD" then
