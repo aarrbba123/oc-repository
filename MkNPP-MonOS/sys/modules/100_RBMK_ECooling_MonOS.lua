@@ -11,17 +11,19 @@ local curPrintNum = 0
 local print = iolib.print
 local invoke = component.invoke
 
+local overheatState = false
+
 local function rbmk_loop()
     local rbmk_com = component.list("rbmk_")
     local temp_buffer = {}
 
     for addr, cType in pairs(rbmk_com) do
-        if not (cType == "rbmk_outgasser" or cType == "rbmk_crane" or cType == "rbmk_console") then
+        if not (cType == "rbmk_outgasser" or cType == "rbmk_crane" or cType == "rbmk_console") then -- Direct mode, importing data directly from those columns
             table.insert(temp_buffer, invoke(addr, "getHeat"))
 
-        elseif cType == "rbmk_console" then
-            for y = 0, 15 do
-                for x = 0, 15 do
+        elseif cType == "rbmk_console" then -- Indirect mode, retrieve from console
+            for y = 0, 15 do -- Rows
+                for x = 0, 15 do -- Cols
                     local col = invoke(addr, "getColumnData", x, y)
                     if col then
                         table.insert(temp_buffer, col["hullTemp"])
@@ -32,6 +34,7 @@ local function rbmk_loop()
         end
     end
 
+    -- Average out the temperature
     local avg_temp = 0
     for _, val in ipairs(temp_buffer) do
         avg_temp = avg_temp + val
@@ -39,13 +42,13 @@ local function rbmk_loop()
     avg_temp = avg_temp / #temp_buffer
 
     if avg_temp > 750 then
-        SYS_MODE = 1
+        overheatState = true
     elseif avg_temp < 650 then
-        SYS_MODE = 0
+        overheatState = false
     end
 
-    local rs = component.redstone
-    if SYS_MODE == 1 then
+    local rs = component.raw.redstone
+    if overheatState then
         invoke(rs, "setOutput", {15, 15, 15, 15, 15, 15})
         print("!!!!! EMERGENCY COOLING ACTIVE !!!!!")
     else

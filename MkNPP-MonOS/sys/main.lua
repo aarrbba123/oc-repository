@@ -1,4 +1,3 @@
-SYS_MODE = 0
 DBG_ENABLED = 0
 
 --- High Memory Pressure threshold. Crashes the system
