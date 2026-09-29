@@ -8,8 +8,8 @@ function utils.inBounds(val, min, max)
     return true
 end
 
-function utils.inList(list, val)
-    for _, chk in ipairs(list) do
+function utils.inTable(tbl, val)
+    for _, chk in pairs(tbl) do
         if val == chk then
             return true
         end
